@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextArea?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="678.0" prefWidth="783.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.UserProfileController">
+   <children>
+      <Label layoutX="14.0" layoutY="139.0" prefHeight="27.0" prefWidth="112.0" text="Gender:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="17.0" layoutY="97.0" prefHeight="27.0" prefWidth="112.0" text="Blood Group:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="18.0" layoutY="49.0" prefHeight="27.0" prefWidth="112.0" text="Name:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="17.0" layoutY="279.0" prefHeight="27.0" prefWidth="112.0" text="Mobile:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="17.0" layoutY="235.0" prefHeight="27.0" prefWidth="112.0" text="Email:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="name" layoutX="144.0" layoutY="49.0" prefHeight="27.0" prefWidth="229.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="bloodGroup" layoutX="144.0" layoutY="97.0" prefHeight="27.0" prefWidth="229.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="14.0" layoutY="185.0" prefHeight="27.0" prefWidth="112.0" text="Date of Birth:">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="gender" layoutX="146.0" layoutY="139.0" prefHeight="27.0" prefWidth="229.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="dateOfBirth" layoutX="144.0" layoutY="185.0" prefHeight="27.0" prefWidth="255.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="mobileNum" layoutX="146.0" layoutY="279.0" prefHeight="27.0" prefWidth="242.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="email" layoutX="144.0" layoutY="235.0" prefHeight="27.0" prefWidth="358.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="addressLabel" layoutX="145.0" layoutY="329.0" prefHeight="27.0" prefWidth="485.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Separator layoutX="-7.0" layoutY="388.0" prefWidth="700.0" />
+      <JFXButton buttonType="RAISED" layoutX="14.0" layoutY="325.0" onAction="#onAddressClick" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Address" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </JFXButton>
+      <JFXTextArea fx:id="textArea" layoutX="40.0" layoutY="406.0" prefHeight="200.0" prefWidth="378.0" />
+      <JFXButton buttonType="RAISED" layoutX="326.0" layoutY="624.0" onAction="#send" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Send" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </JFXButton>
+      <TextField fx:id="textField" layoutX="40.0" layoutY="624.0" prefHeight="26.0" prefWidth="273.0" />
+      <JFXButton layoutX="650.0" layoutY="629.0" onAction="#back" prefHeight="25.0" prefWidth="86.0" text="Click to Back" textFill="RED" />
+   </children>
+</AnchorPane>

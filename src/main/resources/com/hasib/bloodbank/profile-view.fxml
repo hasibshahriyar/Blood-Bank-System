@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="678.0" prefWidth="783.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.ProfileController">
+    <children>
+        <Label layoutX="17.0" layoutY="139.0" prefHeight="27.0" prefWidth="112.0" text="Gender:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label layoutX="17.0" layoutY="94.0" prefHeight="27.0" prefWidth="112.0" text="Blood Group:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label layoutX="17.0" layoutY="48.0" prefHeight="27.0" prefWidth="55.0" text="Name:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label layoutX="17.0" layoutY="280.0" prefHeight="27.0" prefWidth="112.0" text="Mobile:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label layoutX="17.0" layoutY="233.0" prefHeight="27.0" prefWidth="112.0" text="Email:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="name" layoutX="144.0" layoutY="49.0" prefHeight="27.0" prefWidth="229.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="bloodGroup" layoutX="144.0" layoutY="97.0" prefHeight="27.0" prefWidth="229.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label layoutX="17.0" layoutY="185.0" prefHeight="27.0" prefWidth="112.0" text="Date of Birth:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="gender" layoutX="146.0" layoutY="139.0" prefHeight="27.0" prefWidth="229.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="dateOfBirth" layoutX="144.0" layoutY="185.0" prefHeight="27.0" prefWidth="255.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="mobileNum" layoutX="146.0" layoutY="279.0" prefHeight="27.0" prefWidth="242.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="email" layoutX="144.0" layoutY="235.0" prefHeight="27.0" prefWidth="358.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <Label fx:id="address" layoutX="145.0" layoutY="329.0" prefHeight="27.0" prefWidth="485.0">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+
+        <!-- New Donor Availability Section -->
+        <Label layoutX="430.0" layoutY="48.0" prefHeight="27.0" prefWidth="150.0" text="Donor Availability:">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </Label>
+        <CheckBox fx:id="donorAvailabilityCheckBox" layoutX="430.0" layoutY="80.0" onAction="#onDonorAvailabilityToggle"
+                 text="Available to donate blood" textFill="#333333">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </CheckBox>
+        <Label fx:id="donorStatusLabel" layoutX="430.0" layoutY="110.0" prefHeight="27.0" prefWidth="300.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+
+        <!-- New Recipient Status Section -->
+        <Label layoutX="430.0" layoutY="150.0" prefHeight="27.0" prefWidth="150.0" text="Recipient Status:">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </Label>
+        <CheckBox fx:id="recipientStatusCheckBox" layoutX="430.0" layoutY="182.0" onAction="#onRecipientStatusToggle"
+                 text="Need blood donation" textFill="#333333">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </CheckBox>
+        <Label fx:id="recipientStatusLabel" layoutX="430.0" layoutY="212.0" prefHeight="27.0" prefWidth="300.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+
+        <Separator layoutX="41.0" layoutY="383.0" prefWidth="700.0" />
+        <JFXButton buttonType="RAISED" layoutX="14.0" layoutY="325.0" onAction="#onAddressClick" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Address" textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </JFXButton>
+        <Label layoutX="17.0" layoutY="395.0" prefHeight="27.0" prefWidth="64.0" text="History:">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <TableView fx:id="table" layoutX="17.0" layoutY="431.0" prefHeight="230.0" prefWidth="408.0">
+            <columns>
+                <TableColumn fx:id="hospitalColumn" prefWidth="200.0" text="Hospital Name" />
+                <TableColumn fx:id="dateColumn" prefWidth="207.0" text="Date" />
+            </columns>
+        </TableView>
+        <JFXButton buttonType="RAISED" layoutX="654.0" layoutY="431.0" onAction="#donationData" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Donations" textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </JFXButton>
+        <JFXButton buttonType="RAISED" layoutX="654.0" layoutY="492.0" onAction="#receivedData" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Received" textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </JFXButton>
+    </children>
+</AnchorPane>

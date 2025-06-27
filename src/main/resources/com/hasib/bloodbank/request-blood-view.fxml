@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="705.0" prefWidth="800.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.RequestBloodController">
+   <children>
+      <TableView fx:id="tableView" editable="true" layoutX="11.0" layoutY="240.0" onMouseClicked="#omMouseClick" prefHeight="440.0" prefWidth="779.0">
+         <columns>
+            <TableColumn fx:id="id" prefWidth="68.0" text="ID" />
+            <TableColumn fx:id="nameColumn" prefWidth="191.0" text="Name" />
+            <TableColumn fx:id="emailColumn" prefWidth="170.0" text="Email" />
+            <TableColumn fx:id="bloodgroupColumn" prefWidth="145.0" text="Blood Group" />
+            <TableColumn fx:id="phonenumberColumn" prefWidth="204.0" text="Phone Number" />
+         </columns>
+      </TableView>
+
+      <Label layoutX="329.0" layoutY="107.0" text="We Are Here For You!">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+
+      <!-- Filter Controls Section -->
+      <Label layoutX="20.0" layoutY="140.0" text="Filter by Blood Group:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="bloodGroupComboBox" layoutX="20.0" layoutY="160.0" prefWidth="120.0" promptText="Select Blood Group" />
+
+      <Label layoutX="170.0" layoutY="140.0" text="Filter by Division:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="divisionComboBox" layoutX="170.0" layoutY="160.0" prefWidth="120.0" promptText="Select Division" />
+
+      <Label layoutX="320.0" layoutY="140.0" text="Filter by District:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="districtComboBox" layoutX="320.0" layoutY="160.0" prefWidth="120.0" promptText="Select District" />
+
+      <!-- Action Buttons -->
+      <JFXButton alignment="CENTER" buttonType="RAISED" layoutX="460.0" layoutY="160.0" onAction="#onClickLoadButton" prefHeight="27.0" prefWidth="80.0" ripplerFill="#e73b3b" style="-fx-background-color: #a60000;" text="Load All" textFill="#e8e8e8">
+         <font>
+            <Font size="12.0" />
+         </font>
+      </JFXButton>
+
+      <JFXButton alignment="CENTER" buttonType="RAISED" layoutX="550.0" layoutY="160.0" onAction="#onClickFilterByBloodGroup" prefHeight="27.0" prefWidth="90.0" ripplerFill="#e73b3b" style="-fx-background-color: #007acc;" text="Filter by BG" textFill="#e8e8e8">
+         <font>
+            <Font size="12.0" />
+         </font>
+      </JFXButton>
+
+      <JFXButton alignment="CENTER" buttonType="RAISED" layoutX="650.0" layoutY="160.0" onAction="#onClickFilterByLocation" prefHeight="27.0" prefWidth="90.0" ripplerFill="#e73b3b" style="-fx-background-color: #28a745;" text="Filter by Loc" textFill="#e8e8e8">
+         <font>
+            <Font size="12.0" />
+         </font>
+      </JFXButton>
+
+      <JFXButton alignment="CENTER" buttonType="RAISED" layoutX="20.0" layoutY="200.0" onAction="#onClickClearFilters" prefHeight="27.0" prefWidth="80.0" ripplerFill="#e73b3b" style="-fx-background-color: #6c757d;" text="Clear" textFill="#e8e8e8">
+         <font>
+            <Font size="12.0" />
+         </font>
+      </JFXButton>
+
+      <!-- Available Donors Count -->
+      <Label fx:id="availableDonorsLabel" layoutX="120.0" layoutY="205.0" text="Available Donors: 0">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <ImageView fitHeight="80.0" fitWidth="80.0" layoutX="380.0" layoutY="12.0" pickOnBounds="true">
+         <image>
+            <Image url="@img/requestMenuLogo.png" />
+         </image>
+      </ImageView>
+   </children>
+</AnchorPane>

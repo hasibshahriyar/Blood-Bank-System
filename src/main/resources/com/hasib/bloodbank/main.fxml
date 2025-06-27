@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="691.0" prefWidth="1018.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.MainMenuController">
+   <children>
+      <BorderPane fx:id="borderPane" prefHeight="691.0" prefWidth="1018.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <left>
+            <AnchorPane prefHeight="691.0" prefWidth="250.0" style="-fx-background-color: #A60000;" BorderPane.alignment="CENTER">
+               <children>
+                  <!-- App Logo -->
+                  <ImageView fitHeight="150.0" fitWidth="150.0" layoutX="50.0" layoutY="20.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/BloodSource.png" />
+                     </image>
+                  </ImageView>
+
+                  <!-- Sidebar Navigation -->
+                  <VBox layoutX="25.0" layoutY="190.0" prefWidth="200.0" spacing="15.0">
+                     <children>
+                        <!-- Profile Button -->
+                        <JFXButton fx:id="userProfileButton" alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickUserProfileButton" prefHeight="45.0" prefWidth="200.0" ripplerFill="WHITE" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="  Profile">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                           <graphic>
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@img/icons8-user.gif" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </JFXButton>
+
+                        <!-- Request Blood Button -->
+                        <JFXButton fx:id="requestBloodButton" alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickRequestBloodButton" prefHeight="45.0" prefWidth="200.0" ripplerFill="#a60000" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="  Request Blood">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                           <graphic>
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@img/bloodtype_FILL0_wght400_GRAD0_opsz48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </JFXButton>
+
+                        <!-- Donate Blood Button -->
+                        <JFXButton fx:id="donateBloodButton" alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickDonateBloodButton" prefHeight="45.0" prefWidth="200.0" ripplerFill="#a60000" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="  Donate Blood">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                           <graphic>
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@img/donateLogo.gif" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </JFXButton>
+
+                        <!-- Notifications Button -->
+                        <JFXButton fx:id="notificationsButton" alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickNotificationsButton" prefHeight="45.0" prefWidth="200.0" ripplerFill="#a60000" style="-fx-background-color: #FFE66D; -fx-background-radius: 8;" text="  🔔 Notifications">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </JFXButton>
+
+                        <!-- Edit Profile Button -->
+                        <JFXButton alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickEditProfile" prefHeight="45.0" prefWidth="200.0" ripplerFill="#a60000" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="  Edit Profile">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                           <graphic>
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@img/icons8-edit.gif" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </JFXButton>
+
+                        <!-- Change Password Button -->
+                        <JFXButton fx:id="changePasswordButton" alignment="CENTER_LEFT" buttonType="RAISED" contentDisplay="LEFT" onAction="#onClickUserChangePasswordButton" prefHeight="45.0" prefWidth="200.0" ripplerFill="#a60000" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="  Change Password">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                           <graphic>
+                              <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@img/icons8-lock.gif" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </JFXButton>
+                     </children>
+                  </VBox>
+
+                  <!-- Logout Button at Bottom -->
+                  <JFXButton fx:id="logOutButton" alignment="CENTER" buttonType="RAISED" contentDisplay="TOP" layoutX="80.0" layoutY="600.0" onAction="#onClickLogOutButton" prefHeight="50.0" prefWidth="90.0" ripplerFill="#a60000" style="-fx-background-color: #FFFFFF; -fx-background-radius: 8;" text="Log Out!">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@img/logout_FILL0_wght400_GRAD0_opsz48.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </JFXButton>
+
+                  <Text fx:id="txt" layoutX="27.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="146.13671875" />
+               </children>
+            </AnchorPane>
+         </left>
+         <center>
+            <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label layoutX="112.0" layoutY="186.0" text="Welcome to Blood Source">
+                     <font>
+                        <Font size="50.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="223.0" layoutY="281.0" text="Stay Fit and Eat Right and Donate Blood">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>

@@ -175,10 +175,23 @@ public class RegisterMenuController implements Initializable {
         p.setLastName(lastNameTextField.getText());
         p.setPhoneNumber(mobileNumTextField.getText());
         p.setEmail(emailTextField.getText());
+
+        // Convert blood group from ComboBox selection to enum
+        String selectedBloodGroup = bloodGroupComboBox.getValue();
+        if (selectedBloodGroup != null) {
+            p.setBloodGroup(BloodGroup.fromDisplayValue(selectedBloodGroup));
+        }
+
+        // Convert gender from ComboBox selection to enum
+        String selectedGender = genderComboBox.getValue();
+        if (selectedGender != null) {
+            p.setGender(Gender.valueOf(selectedGender.toUpperCase()));
+        }
+
         password = passwordField.getText();
-        district=districtComboBox.getValue();
-        thana=thanaTextField.getText();
-        division=divisionComboBox.getValue();
+        district = districtComboBox.getValue();
+        thana = thanaTextField.getText();
+        division = divisionComboBox.getValue();
     }
 
     @FXML
@@ -187,15 +200,23 @@ public class RegisterMenuController implements Initializable {
             takingInput();
 
             try {
+                // Clear any previous error messages
+                addressWarning.setText("Processing registration...");
+                addressWarning.setStyle("-fx-text-fill: blue;");
+
                 // Step 1: Save password first
                 Password passwordEntity = new Password(password);
+                System.out.println("Attempting to save password...");
                 boolean passwordSaved = PasswordController.savePassword(passwordEntity);
                 if (!passwordSaved) {
                     addressWarning.setText("Failed to save password. Please try again.");
+                    addressWarning.setStyle("-fx-text-fill: red;");
                     return;
                 }
+                System.out.println("Password saved successfully");
 
-                // Step 2: Save person (the PersonController doesn't return boolean)
+                // Step 2: Save person
+                System.out.println("Attempting to save person with blood group: " + p.getBloodGroup() + " and gender: " + p.getGender());
                 PersonController.savePerson(
                         p.getFirstName(),
                         p.getLastName(),
@@ -205,78 +226,64 @@ public class RegisterMenuController implements Initializable {
                         p.getBloodGroup(),
                         p.getGender()
                 );
+                System.out.println("Person saved successfully");
 
-                // Step 3: Save address (the AddressController doesn't return boolean)
+                // Step 3: Save address
+                System.out.println("Attempting to save address...");
                 Address addressEntity = new Address(division, district, thana);
                 AddressController.saveAddress(addressEntity);
+                System.out.println("Address saved successfully");
 
-                // Step 4: Navigate to login page
-                nextPage("login-view.fxml", event);
+                // Step 4: Show success message and navigate
+                addressWarning.setText("Registration successful! Redirecting to login...");
+                addressWarning.setStyle("-fx-text-fill: green;");
 
-            } catch (SQLException | ClassNotFoundException | IOException e) {
-                System.err.println("Registration failed: " + e.getMessage());
+                // Add a small delay to show success message
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1500);
+                        javafx.application.Platform.runLater(() -> {
+                            try {
+                                nextPage("login-view.fxml", event);
+                            } catch (IOException e) {
+                                System.err.println("Navigation error: " + e.getMessage());
+                                addressWarning.setText("Registration successful but navigation failed.");
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }).start();
+
+            } catch (SQLException e) {
+                String errorMsg = "Database error: " + e.getMessage();
+                System.err.println("Registration failed: " + errorMsg);
                 e.printStackTrace();
-                // Show error message to user
-                addressWarning.setText("Registration failed. Please try again.");
+                addressWarning.setText("Database error occurred. Please check your connection.");
+                addressWarning.setStyle("-fx-text-fill: red;");
+            } catch (ClassNotFoundException e) {
+                String errorMsg = "Database driver error: " + e.getMessage();
+                System.err.println("Registration failed: " + errorMsg);
+                e.printStackTrace();
+                addressWarning.setText("Database configuration error. Please contact support.");
+                addressWarning.setStyle("-fx-text-fill: red;");
+            } catch (Exception e) {
+                String errorMsg = "Unexpected error: " + e.getMessage();
+                System.err.println("Registration failed: " + errorMsg);
+                e.printStackTrace();
+                addressWarning.setText("Registration failed: " + e.getMessage());
+                addressWarning.setStyle("-fx-text-fill: red;");
             }
         }
     }
 
+    // Simplified event handlers that just clear warning messages
     public void onClickBloodGroupComboBox(ActionEvent event) {
         bloodGroupWarning.setText("");
-        String Group = bloodGroupComboBox.getValue();
-
-        switch(Group) {
-            case "O+":
-                p.setBloodGroup(BloodGroup.O_POSITIVE);
-                break;
-            case "O-":
-                p.setBloodGroup(BloodGroup.O_NEGATIVE);
-
-                break;
-            case "A+":
-                p.setBloodGroup(BloodGroup.A_POSITIVE);
-
-                break;
-            case "A-":
-                p.setBloodGroup(BloodGroup.A_NEGATIVE);
-
-                break;
-            case "B+":
-                p.setBloodGroup(BloodGroup.B_POSITIVE);
-
-                break;
-            case "B-":
-                p.setBloodGroup(BloodGroup.B_NEGATIVE);
-
-                break;
-            case "AB+":
-                p.setBloodGroup(BloodGroup.AB_POSITIVE);
-
-                break;
-            case "AB-":
-                p.setBloodGroup(BloodGroup.AB_NEGATIVE);
-
-                break;
-
-        }
     }
 
     public void onClickGenderComboBox(ActionEvent event) {
         genderWarning.setText("");
-        String genderA = genderComboBox.getValue();
-        switch(genderA) {
-            case "Male":
-                p.setGender(Gender.MALE);
-                break;
-            case "Female":
-                p.setGender(Gender.FEMALE);
-                break;
-            case "Other":
-                p.setGender(Gender.OTHER);
-                break;
-        }
-
     }
 
 

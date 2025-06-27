@@ -126,26 +126,72 @@ public class DonateBloodController implements Initializable {
         districtComboBox.getItems().addAll("Dhaka", "Gazipur", "Narayanganj", "Chittagong", "Cox's Bazar", "Rajshahi", "Khulna", "Sylhet");
     }
 
-    public void omMouseClick(MouseEvent mouseEvent) throws IOException {
-        if (mouseEvent.getClickCount() == 1) {
-            person = tableView.getSelectionModel().getSelectedItem();
-            User.getInstance().setShowPerson(person);
-        }
-        if (mouseEvent.getClickCount() == 2) {
-            if (person != null) {
-                Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("don-user-profile-view.fxml")));
-                Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-                stage.setTitle("BloodBank - Recipient Profile");
-                stage.setScene(new Scene(root));
-                stage.setResizable(false);
-                stage.show();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("No Recipient Selected");
-                alert.setHeaderText(null);
-                alert.setContentText("Please select a recipient to view their profile.");
-                alert.showAndWait();
+    public void omMouseClick(MouseEvent mouseEvent) {
+        try {
+            if (mouseEvent.getClickCount() == 1) {
+                person = tableView.getSelectionModel().getSelectedItem();
+                if (person != null) {
+                    User.getInstance().setShowPerson(person);
+                    System.out.println("Selected recipient: " + person.getName() + " (ID: " + person.getId() + ")");
+                }
             }
+
+            if (mouseEvent.getClickCount() == 2) {
+                // Get the selected person if not already set
+                if (person == null) {
+                    person = tableView.getSelectionModel().getSelectedItem();
+                }
+
+                if (person != null) {
+                    // Set the selected person in User singleton
+                    User.getInstance().setShowPerson(person);
+
+                    System.out.println("Opening recipient profile for: " + person.getName());
+
+                    // Load the recipient profile view
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("don-user-profile-view.fxml"));
+                    Parent root = loader.load();
+
+                    // Get the current stage
+                    Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+
+                    // Create new scene and set it
+                    Scene scene = new Scene(root);
+                    stage.setTitle("BloodBank - Donate to " + person.getName());
+                    stage.setScene(scene);
+                    stage.setResizable(false);
+                    stage.show();
+
+                    System.out.println("Successfully opened don-user-profile-view.fxml");
+
+                } else {
+                    System.out.println("No recipient selected for profile view");
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("No Recipient Selected");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Please select a recipient first, then double-click to view their profile.");
+                    alert.showAndWait();
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error loading don-user-profile-view.fxml: " + e.getMessage());
+            e.printStackTrace();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Failed to open recipient profile");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
+        } catch (Exception e) {
+            System.err.println("Unexpected error in omMouseClick: " + e.getMessage());
+            e.printStackTrace();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Unexpected Error");
+            alert.setHeaderText("An unexpected error occurred");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
         }
     }
 }

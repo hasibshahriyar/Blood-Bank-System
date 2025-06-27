@@ -8,181 +8,389 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="678.0" prefWidth="783.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.UserProfileController">
+<AnchorPane prefHeight="750.0" prefWidth="850.0" style="-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hasib.bloodbank.UserProfileController">
    <children>
-      <Label fx:id="name" layoutX="180.0" layoutY="49.0" prefHeight="27.0" prefWidth="229.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="bloodGroup" layoutX="180.0" layoutY="92.0" prefHeight="27.0" prefWidth="229.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="gender" layoutX="180.0" layoutY="138.0" prefHeight="27.0" prefWidth="229.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="dateOfBirth" layoutX="180.0" layoutY="185.0" prefHeight="27.0" prefWidth="255.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="mobileNum" layoutX="180.0" layoutY="281.0" prefHeight="27.0" prefWidth="242.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="email" layoutX="180.0" layoutY="232.0" prefHeight="27.0" prefWidth="358.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="addressLabel" layoutX="180.0" layoutY="329.0" prefHeight="27.0" prefWidth="485.0">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Separator layoutX="-7.0" layoutY="388.0" prefWidth="700.0" />
-      <JFXButton buttonType="RAISED" layoutX="14.0" layoutY="325.0" onAction="#onAddressClick" prefHeight="37.0" prefWidth="112.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Address" textAlignment="CENTER" textFill="WHITE">
-         <font>
-            <Font size="16.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+      <!-- Modern Header Section -->
+      <Rectangle arcHeight="25.0" arcWidth="25.0" fill="linear-gradient(to right, #e74c3c, #c0392b)" height="70.0" layoutX="0.0" layoutY="0.0" width="850.0" />
+      <HBox layoutX="30.0" layoutY="15.0" spacing="15.0" alignment="CENTER_LEFT">
+         <children>
+            <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@img/icons8-address-48.png" />
+                  <Image url="@img/bloodtype_FILL0_wght400_GRAD0_opsz48.png" />
                </image>
             </ImageView>
-         </graphic>
-      </JFXButton>
-      <JFXTextArea fx:id="textArea" editable="false" layoutX="40.0" layoutY="406.0" prefHeight="200.0" prefWidth="378.0" style="-fx-background-color: #F5F5F5;" wrapText="true" />
-      <JFXButton buttonType="RAISED" layoutX="482.0" layoutY="452.0" onAction="#request" prefHeight="37.0" prefWidth="112.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Request" textAlignment="CENTER" textFill="WHITE">
+            <Label text="🩸 Blood Request Center" style="-fx-font-weight: bold; -fx-text-fill: white;">
+               <font>
+                  <Font size="26.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+
+      <!-- Enhanced Profile Card with Better Layout -->
+      <Rectangle arcHeight="25.0" arcWidth="25.0" fill="#ffffff" height="200.0" layoutX="25.0" layoutY="90.0" stroke="#dee2e6" strokeWidth="2.0" width="800.0" style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);" />
+
+      <!-- Improved Profile Picture Section -->
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="linear-gradient(to bottom, #3498db, #2980b9)" height="130.0" layoutX="50.0" layoutY="110.0" width="130.0" style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);" />
+      <ImageView fitHeight="80.0" fitWidth="80.0" layoutX="75.0" layoutY="135.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@img/icons8-name-48.png" />
+         </image>
+      </ImageView>
+      <Label layoutX="50.0" layoutY="250.0" text="Blood Requester" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-alignment: center;" prefWidth="130.0">
          <font>
-            <Font size="16.0" />
+            <Font size="12.0" />
          </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-collapse-arrow-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </JFXButton>
-      <JFXButton buttonType="RAISED" layoutX="629.0" layoutY="452.0" onAction="#accept" prefHeight="37.0" prefWidth="112.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Accept" textAlignment="CENTER" textFill="WHITE">
-         <font>
-            <Font size="16.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-done-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </JFXButton>
-      <JFXButton buttonType="RAISED" layoutX="326.0" layoutY="624.0" onAction="#send" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Send" textAlignment="CENTER" textFill="WHITE">
-         <font>
-            <Font size="16.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-email-send-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </JFXButton>
-      <TextField fx:id="textField" layoutX="40.0" layoutY="624.0" prefHeight="26.0" prefWidth="273.0" promptText="Enter your message here" />
-      <TextField fx:id="hospitalNameTExtFild" layoutX="512.0" layoutY="413.0" prefHeight="26.0" prefWidth="230.0" promptText="Enter Hospital Name" />
-      <Text fx:id="warning" fill="#b22020" layoutX="536.0" layoutY="520.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="181.0" />
-      <JFXButton layoutX="659.0" layoutY="637.0" onAction="#back" prefHeight="25.0" prefWidth="86.0" ripplerFill="WHITE" text="Click to Back" textFill="RED" />
-      <Label layoutX="17.0" layoutY="137.0" prefHeight="27.0" prefWidth="95.0" text="Gender:">
-         <font>
-            <Font size="18.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-gender-64.png" />
-               </image>
-            </ImageView>
-         </graphic>
       </Label>
-      <Label layoutX="17.0" layoutY="92.0" prefHeight="27.0" prefWidth="139.0" text="Blood Group:">
+
+      <!-- Enhanced Personal Information Grid -->
+      <Label layoutX="210.0" layoutY="105.0" text="👤 Personal Details" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;">
          <font>
             <Font size="18.0" />
          </font>
-         <graphic>
+      </Label>
+
+      <VBox layoutX="210.0" layoutY="135.0" spacing="12.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#3498db" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-name-48.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Name:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="100.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="name" style="-fx-text-fill: #2c3e50; -fx-font-weight: bold;" prefWidth="200.0">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#e74c3c" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/bloodtype_FILL0_wght400_GRAD0_opsz48.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Blood Group:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="100.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="bloodGroup" style="-fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-background-color: #ffe5e5; -fx-padding: 8 15; -fx-background-radius: 20; -fx-border-color: #e74c3c; -fx-border-width: 1; -fx-border-radius: 20;" prefWidth="200.0">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#9b59b6" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-gender-64.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Gender:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="100.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="gender" style="-fx-text-fill: #2c3e50;" prefWidth="200.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#f39c12" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-thursday-48.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Date of Birth:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="100.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="dateOfBirth" style="-fx-text-fill: #2c3e50;" prefWidth="200.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+
+      <!-- Enhanced Contact Information -->
+      <VBox layoutX="580.0" layoutY="135.0" spacing="12.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#27ae60" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-mail-482.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Email:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="70.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="email" style="-fx-text-fill: #3498db; -fx-underline: true;" prefWidth="160.0">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <children>
+                  <Rectangle arcHeight="8.0" arcWidth="8.0" fill="#e67e22" height="25.0" width="4.0" />
+                  <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-smartphone-48.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Mobile:" style="-fx-font-weight: bold; -fx-text-fill: #34495e;" prefWidth="70.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="mobileNum" style="-fx-text-fill: #2c3e50;" prefWidth="160.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <JFXButton buttonType="RAISED" onAction="#onAddressClick" prefHeight="38.0" prefWidth="160.0" ripplerFill="WHITE" style="-fx-background-color: linear-gradient(to right, #16a085, #1abc9c); -fx-background-radius: 20;" text="📍 View Address" textFill="WHITE">
+               <font>
+                  <Font size="13.0" />
+               </font>
+            </JFXButton>
+         </children>
+      </VBox>
+
+      <!-- Enhanced Blood Request Section -->
+      <Rectangle arcHeight="25.0" arcWidth="25.0" fill="#ffffff" height="220.0" layoutX="25.0" layoutY="310.0" stroke="#dee2e6" strokeWidth="2.0" width="400.0" style="-fx-effect: dropshadow(three-pass-box, rgba(231,76,60,0.3), 8, 0, 0, 3);" />
+
+      <VBox layoutX="45.0" layoutY="325.0" spacing="8.0">
+         <children>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+               <children>
+                  <Rectangle arcHeight="10.0" arcWidth="10.0" fill="#e74c3c" height="30.0" width="5.0" />
+                  <Label text="🩸 Blood Request Portal" style="-fx-font-weight: bold; -fx-text-fill: #c0392b;">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <Label text="Request urgent blood donation from compatible donors" style="-fx-text-fill: #7f8c8d;">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <children>
+                  <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/icons8-hospital-3-48.png" />
+                     </image>
+                  </ImageView>
+                  <Label text="Hospital Information:" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <TextField fx:id="hospitalNameTExtFild" promptText="🏥 Enter hospital name and department details" style="-fx-background-radius: 15; -fx-border-radius: 15; -fx-border-color: #bdc3c7; -fx-border-width: 2; -fx-padding: 12; -fx-font-size: 13;" prefWidth="340.0" />
+
+            <HBox spacing="15.0" alignment="CENTER_LEFT">
+               <children>
+                  <JFXButton buttonType="RAISED" onAction="#request" prefHeight="45.0" prefWidth="140.0" ripplerFill="WHITE" style="-fx-background-color: linear-gradient(to right, #e74c3c, #c0392b); -fx-background-radius: 23;" text="🚨 Send Request" textFill="WHITE">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </JFXButton>
+
+                  <JFXButton buttonType="RAISED" onAction="#accept" prefHeight="45.0" prefWidth="100.0" ripplerFill="WHITE" style="-fx-background-color: linear-gradient(to right, #27ae60, #2ecc71); -fx-background-radius: 23;" text="✅ Accept" textFill="WHITE">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </JFXButton>
+
+                  <JFXButton buttonType="RAISED" onAction="#reject" prefHeight="45.0" prefWidth="100.0" ripplerFill="WHITE" style="-fx-background-color: linear-gradient(to right, #f39c12, #e67e22); -fx-background-radius: 23;" text="❌ Reject" textFill="WHITE">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </JFXButton>
+               </children>
+            </HBox>
+
+            <Text fx:id="warning" fill="#e74c3c" style="-fx-font-weight: bold;" wrappingWidth="340.0">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Text>
+         </children>
+      </VBox>
+
+      <!-- Enhanced Chat Section -->
+      <Rectangle arcHeight="25.0" arcWidth="25.0" fill="#ffffff" height="220.0" layoutX="445.0" layoutY="310.0" stroke="#dee2e6" strokeWidth="2.0" width="380.0" style="-fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.3), 8, 0, 0, 3);" />
+
+      <VBox layoutX="465.0" layoutY="325.0" spacing="8.0">
+         <children>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+               <children>
+                  <Rectangle arcHeight="10.0" arcWidth="10.0" fill="#3498db" height="30.0" width="5.0" />
+                  <Label text="💬 Communication Hub" style="-fx-font-weight: bold; -fx-text-fill: #2980b9;">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <Label text="Chat directly with potential donors in real-time" style="-fx-text-fill: #7f8c8d;">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+
+      <JFXTextArea fx:id="textArea" editable="false" layoutX="465.0" layoutY="375.0" prefHeight="110.0" prefWidth="340.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 15; -fx-border-radius: 15; -fx-border-color: #bdc3c7; -fx-border-width: 1; -fx-font-size: 12;" wrapText="true" />
+
+      <HBox layoutX="465.0" layoutY="495.0" spacing="10.0" alignment="CENTER_LEFT">
+         <children>
+            <TextField fx:id="textField" promptText="💭 Type your message..." style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: #bdc3c7; -fx-border-width: 2; -fx-padding: 10; -fx-font-size: 13;" prefWidth="250.0" />
+            <JFXButton buttonType="RAISED" onAction="#send" prefHeight="40.0" prefWidth="80.0" ripplerFill="WHITE" style="-fx-background-color: linear-gradient(to right, #3498db, #2980b9); -fx-background-radius: 20;" text="📤 Send" textFill="WHITE">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </JFXButton>
+         </children>
+      </HBox>
+
+      <!-- Enhanced Statistics and Info Section -->
+      <Rectangle arcHeight="25.0" arcWidth="25.0" fill="#ffffff" height="120.0" layoutX="25.0" layoutY="550.0" stroke="#dee2e6" strokeWidth="2.0" width="800.0" style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3);" />
+
+      <HBox layoutX="45.0" layoutY="565.0" spacing="30.0" alignment="CENTER_LEFT">
+         <children>
+            <VBox spacing="8.0" alignment="CENTER">
+               <children>
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="linear-gradient(to bottom, #e74c3c, #c0392b)" height="40.0" width="80.0" />
+                  <Label text="🎯 Priority" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;">
+                     <font>
+                        <Font size="12.0" />
+                     </font>
+                  </Label>
+                  <Label text="High" style="-fx-text-fill: #e74c3c; -fx-font-weight: bold;">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+
+            <VBox spacing="8.0" alignment="CENTER">
+               <children>
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="linear-gradient(to bottom, #27ae60, #2ecc71)" height="40.0" width="80.0" />
+                  <Label text="📊 Status" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;">
+                     <font>
+                        <Font size="12.0" />
+                     </font>
+                  </Label>
+                  <Label text="Active" style="-fx-text-fill: #27ae60; -fx-font-weight: bold;">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+
+            <VBox spacing="8.0" alignment="CENTER">
+               <children>
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="linear-gradient(to bottom, #f39c12, #e67e22)" height="40.0" width="80.0" />
+                  <Label text="⏰ Urgency" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;">
+                     <font>
+                        <Font size="12.0" />
+                     </font>
+                  </Label>
+                  <Label text="Immediate" style="-fx-text-fill: #f39c12; -fx-font-weight: bold;">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+
+            <VBox spacing="10.0" alignment="CENTER_LEFT">
+               <children>
+                  <JFXButton onAction="#back" prefHeight="45.0" prefWidth="160.0" style="-fx-background-color: linear-gradient(to right, #95a5a6, #7f8c8d); -fx-background-radius: 23;" text="← Back to Dashboard" textFill="WHITE">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </JFXButton>
+
+                  <Label text="💡 Tip: Be specific about your location and urgency" style="-fx-font-style: italic; -fx-text-fill: #7f8c8d;">
+                     <font>
+                        <Font size="10.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+
+      <!-- Enhanced Footer -->
+      <HBox layoutX="25.0" layoutY="690.0" spacing="20.0" alignment="CENTER_LEFT">
+         <children>
             <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@img/bloodtype_FILL0_wght400_GRAD0_opsz48.png" />
                </image>
             </ImageView>
-         </graphic>
-      </Label>
-      <Label layoutX="17.0" layoutY="46.0" prefHeight="27.0" prefWidth="95.0" text="Name:">
-         <font>
-            <Font size="18.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true">
-               <image>
-                  <Image url="@img/icons8-name-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </Label>
-      <Label layoutX="17.0" layoutY="278.0" prefHeight="27.0" prefWidth="112.0" text="Mobile:">
-         <font>
-            <Font size="18.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-smartphone-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </Label>
-      <Label layoutX="17.0" layoutY="230.0" prefHeight="27.0" prefWidth="76.0" text="Email:">
-         <font>
-            <Font size="18.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-mail-482.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </Label>
-      <Label layoutX="17.0" layoutY="183.0" prefHeight="27.0" prefWidth="139.0" text="Date of Birth:">
-         <font>
-            <Font size="18.0" />
-         </font>
-         <graphic>
-            <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@img/icons8-thursday-48.png" />
-               </image>
-            </ImageView>
-         </graphic>
-      </Label>
-      <ImageView fitHeight="24.0" fitWidth="24.0" layoutX="479.0" layoutY="414.0" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="@img/icons8-hospital-3-48.png" />
-         </image>
-      </ImageView>
-      <JFXButton buttonType="RAISED" layoutX="512.0" layoutY="520.0" onAction="#reject" prefHeight="27.0" prefWidth="95.0" ripplerFill="WHITE" style="-fx-background-color: #A60000;" text="Reject" textAlignment="CENTER" textFill="WHITE">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </JFXButton>
+            <Label text="🌟 Every second counts - Connect with donors and save lives together!" style="-fx-font-style: italic; -fx-text-fill: #7f8c8d; -fx-font-weight: bold;">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+
+      <!-- Hidden address label for compatibility -->
+      <Label fx:id="addressLabel" visible="false" />
    </children>
 </AnchorPane>

@@ -49,7 +49,34 @@ public class BloodRequestController {
         public String getRequesterEmail() { return requesterEmail; }
     }
 
+    public static void createNotificationsTable() throws SQLException, ClassNotFoundException {
+        Connection connection = ConnectionProvider.createConnection();
+        String createTableQuery = "CREATE TABLE IF NOT EXISTS notifications (" +
+                "notification_id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "person_id INT NOT NULL, " +
+                "notification_type ENUM('Blood_Request', 'Donation_Response', 'System_Alert', 'Reminder') NOT NULL, " +
+                "title VARCHAR(200) NOT NULL, " +
+                "message TEXT NOT NULL, " +
+                "related_id INT NULL, " +
+                "is_read BOOLEAN DEFAULT FALSE, " +
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "read_date TIMESTAMP NULL, " +
+                "FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE, " +
+                "INDEX idx_person (person_id), " +
+                "INDEX idx_type (notification_type), " +
+                "INDEX idx_is_read (is_read), " +
+                "INDEX idx_created_date (created_date)" +
+                ")";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(createTableQuery);
+        preparedStatement.execute();
+        connection.close();
+    }
+
     public static boolean sendBloodRequest(int requesterId, int donorId, String message) throws SQLException, ClassNotFoundException {
+        // Ensure notifications table exists
+        createNotificationsTable();
+
         Connection connection = ConnectionProvider.createConnection();
 
         try {
@@ -85,6 +112,7 @@ public class BloodRequestController {
 
                 // Commit transaction
                 connection.commit();
+                System.out.println("Blood request and notification created successfully for donor ID: " + donorId);
                 return true;
             } else {
                 connection.rollback();
@@ -93,6 +121,7 @@ public class BloodRequestController {
 
         } catch (SQLException e) {
             connection.rollback();
+            System.err.println("Error creating blood request and notification: " + e.getMessage());
             throw e;
         } finally {
             connection.setAutoCommit(true);
@@ -208,6 +237,8 @@ public class BloodRequestController {
         stmt.setString(3, title);
         stmt.setString(4, message);
         stmt.setInt(5, relatedId);
-        stmt.executeUpdate();
+
+        int result = stmt.executeUpdate();
+        System.out.println("Notification created for person ID " + personId + ": " + (result > 0 ? "SUCCESS" : "FAILED"));
     }
 }

@@ -134,26 +134,72 @@ public class RequestBloodController implements Initializable {
         }
     }
 
-    public void omMouseClick(MouseEvent mouseEvent) throws IOException {
-        if (mouseEvent.getClickCount() == 1) {
-            person = tableView.getSelectionModel().getSelectedItem();
-            User.getInstance().setShowPerson(person);
-        }
-        if (mouseEvent.getClickCount() == 2) {
-            if (person != null) {
-                Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("req-user-profile-view.fxml")));
-                Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-                stage.setTitle("BloodBank - Donor Profile");
-                stage.setScene(new Scene(root));
-                stage.setResizable(false);
-                stage.show();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("No Donor Selected");
-                alert.setHeaderText(null);
-                alert.setContentText("Please select a donor to view their profile.");
-                alert.showAndWait();
+    public void omMouseClick(MouseEvent mouseEvent) {
+        try {
+            if (mouseEvent.getClickCount() == 1) {
+                person = tableView.getSelectionModel().getSelectedItem();
+                if (person != null) {
+                    User.getInstance().setShowPerson(person);
+                    System.out.println("Selected donor: " + person.getName() + " (ID: " + person.getId() + ")");
+                }
             }
+
+            if (mouseEvent.getClickCount() == 2) {
+                // Get the selected person if not already set
+                if (person == null) {
+                    person = tableView.getSelectionModel().getSelectedItem();
+                }
+
+                if (person != null) {
+                    // Set the selected person in User singleton
+                    User.getInstance().setShowPerson(person);
+
+                    System.out.println("Opening profile for: " + person.getName());
+
+                    // Load the user profile view
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("req-user-profile-view.fxml"));
+                    Parent root = loader.load();
+
+                    // Get the current stage
+                    Stage stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
+
+                    // Create new scene and set it
+                    Scene scene = new Scene(root);
+                    stage.setTitle("BloodBank - Request Blood from " + person.getName());
+                    stage.setScene(scene);
+                    stage.setResizable(false);
+                    stage.show();
+
+                    System.out.println("Successfully opened req-user-profile-view.fxml");
+
+                } else {
+                    System.out.println("No donor selected for profile view");
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("No Donor Selected");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Please select a donor first, then double-click to view their profile.");
+                    alert.showAndWait();
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error loading req-user-profile-view.fxml: " + e.getMessage());
+            e.printStackTrace();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText("Failed to open donor profile");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
+        } catch (Exception e) {
+            System.err.println("Unexpected error in omMouseClick: " + e.getMessage());
+            e.printStackTrace();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Unexpected Error");
+            alert.setHeaderText("An unexpected error occurred");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
         }
     }
 }

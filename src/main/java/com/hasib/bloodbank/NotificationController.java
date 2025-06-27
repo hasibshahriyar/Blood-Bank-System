@@ -2,6 +2,9 @@ package com.hasib.bloodbank;
 
 import com.hasib.bloodbank.server.provider.ConnectionProvider;
 import com.hasib.bloodbank.singleton.User;
+import com.hasib.bloodbank.utils.ThreadPoolManager;
+import com.hasib.bloodbank.utils.NotificationManager;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -68,11 +71,18 @@ public class NotificationController implements Initializable {
     public TableColumn<Notification, String> donorPhoneColumn;
 
     private final User user = User.getInstance();
+    private final ThreadPoolManager threadPool = ThreadPoolManager.getInstance();
+    private final NotificationManager notificationManager = NotificationManager.getInstance();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupTableColumns();
         loadNotifications();
+
+        // Schedule periodic notification refresh
+        threadPool.schedulePeriodicTask(() -> {
+            Platform.runLater(this::loadNotifications);
+        }, 30, 30, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     private void setupTableColumns() {
@@ -98,18 +108,29 @@ public class NotificationController implements Initializable {
     }
 
     public void loadNotifications() {
-        try {
-            ObservableList<Notification> notifications = getNotificationsFromDatabase();
-            requestsTable.setItems(notifications);
-            myRequestsTable.setItems(notifications);
+        threadPool.executeDatabaseTask(() -> {
+            try {
+                ObservableList<Notification> notifications = getNotificationsFromDatabase();
+                int unreadCount = getUnreadNotificationCount();
 
-            // Update notification count
-            int unreadCount = getUnreadNotificationCount();
-            notificationCountLabel.setText("Unread: " + unreadCount);
+                Platform.runLater(() -> {
+                    requestsTable.setItems(notifications);
+                    myRequestsTable.setItems(notifications);
+                    notificationCountLabel.setText("Unread: " + unreadCount);
 
-        } catch (SQLException | ClassNotFoundException e) {
-            showAlert("Database Error", "Failed to load notifications: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
+                    // Debug information
+                    System.out.println("Loaded " + notifications.size() + " notifications for user ID: " + user.getUserId());
+                    System.out.println("Unread notifications: " + unreadCount);
+                });
+
+            } catch (SQLException | ClassNotFoundException e) {
+                System.err.println("Error loading notifications: " + e.getMessage());
+                e.printStackTrace();
+                Platform.runLater(() -> {
+                    showAlert("Database Error", "Failed to load notifications: " + e.getMessage(), Alert.AlertType.ERROR);
+                });
+            }
+        });
     }
 
     private ObservableList<Notification> getNotificationsFromDatabase() throws SQLException, ClassNotFoundException {
@@ -121,6 +142,9 @@ public class NotificationController implements Initializable {
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         preparedStatement.setInt(1, user.getUserId());
+
+        System.out.println("Querying notifications for user ID: " + user.getUserId());
+
         ResultSet resultSet = preparedStatement.executeQuery();
 
         while (resultSet.next()) {
@@ -133,6 +157,7 @@ public class NotificationController implements Initializable {
                     resultSet.getBoolean("is_read")
             );
             notifications.add(notification);
+            System.out.println("Found notification: " + notification.getTitle());
         }
 
         connection.close();
@@ -169,28 +194,38 @@ public class NotificationController implements Initializable {
     public void onAcceptButtonClicked(ActionEvent actionEvent) {
         Notification selectedNotification = requestsTable.getSelectionModel().getSelectedItem();
         if (selectedNotification != null) {
-            try {
-                markNotificationAsRead(selectedNotification.getNotificationId());
+            threadPool.executeDatabaseTask(() -> {
+                try {
+                    markNotificationAsRead(selectedNotification.getNotificationId());
 
-                if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
-                    // Update the blood request status to ACCEPTED
-                    updateBloodRequestStatus(selectedNotification.getNotificationId(), "ACCEPTED");
+                    if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
+                        // Update the blood request status to ACCEPTED
+                        updateBloodRequestStatus(selectedNotification.getNotificationId(), "ACCEPTED");
 
-                    // Create notification for the requester
-                    int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
-                    if (requesterId > 0) {
-                        createResponseNotification(requesterId, "Your blood request has been ACCEPTED! The donor will contact you soon.");
+                        // Create notification for the requester
+                        int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
+                        if (requesterId > 0) {
+                            createResponseNotification(requesterId, "Your blood request has been ACCEPTED! The donor will contact you soon.");
+                        }
+
+                        Platform.runLater(() -> {
+                            showAlert("Success", "Blood request accepted successfully! The requester has been notified.", Alert.AlertType.INFORMATION);
+                            loadNotifications(); // Refresh the list
+                        });
+                    } else {
+                        Platform.runLater(() -> {
+                            showAlert("Success", "Notification marked as read.", Alert.AlertType.INFORMATION);
+                            loadNotifications(); // Refresh the list
+                        });
                     }
 
-                    showAlert("Success", "Blood request accepted successfully! The requester has been notified.", Alert.AlertType.INFORMATION);
-                } else {
-                    showAlert("Success", "Notification marked as read.", Alert.AlertType.INFORMATION);
+                } catch (SQLException | ClassNotFoundException e) {
+                    Platform.runLater(() -> {
+                        showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
+                    });
+                    e.printStackTrace();
                 }
-
-                loadNotifications(); // Refresh the list
-            } catch (SQLException | ClassNotFoundException e) {
-                showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
+            });
         } else {
             showAlert("No Selection", "Please select a notification to accept.", Alert.AlertType.WARNING);
         }
@@ -199,28 +234,38 @@ public class NotificationController implements Initializable {
     public void onDeclineButtonClicked(ActionEvent actionEvent) {
         Notification selectedNotification = requestsTable.getSelectionModel().getSelectedItem();
         if (selectedNotification != null) {
-            try {
-                markNotificationAsRead(selectedNotification.getNotificationId());
+            threadPool.executeDatabaseTask(() -> {
+                try {
+                    markNotificationAsRead(selectedNotification.getNotificationId());
 
-                if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
-                    // Update the blood request status to DECLINED
-                    updateBloodRequestStatus(selectedNotification.getNotificationId(), "DECLINED");
+                    if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
+                        // Update the blood request status to DECLINED
+                        updateBloodRequestStatus(selectedNotification.getNotificationId(), "DECLINED");
 
-                    // Create notification for the requester
-                    int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
-                    if (requesterId > 0) {
-                        createResponseNotification(requesterId, "Your blood request has been declined. Please try contacting other donors.");
+                        // Create notification for the requester
+                        int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
+                        if (requesterId > 0) {
+                            createResponseNotification(requesterId, "Your blood request has been declined. Please try contacting other donors.");
+                        }
+
+                        Platform.runLater(() -> {
+                            showAlert("Success", "Blood request declined. The requester has been notified.", Alert.AlertType.INFORMATION);
+                            loadNotifications(); // Refresh the list
+                        });
+                    } else {
+                        Platform.runLater(() -> {
+                            showAlert("Success", "Notification marked as read.", Alert.AlertType.INFORMATION);
+                            loadNotifications(); // Refresh the list
+                        });
                     }
 
-                    showAlert("Success", "Blood request declined. The requester has been notified.", Alert.AlertType.INFORMATION);
-                } else {
-                    showAlert("Success", "Notification marked as read.", Alert.AlertType.INFORMATION);
+                } catch (SQLException | ClassNotFoundException e) {
+                    Platform.runLater(() -> {
+                        showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
+                    });
+                    e.printStackTrace();
                 }
-
-                loadNotifications(); // Refresh the list
-            } catch (SQLException | ClassNotFoundException e) {
-                showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
+            });
         } else {
             showAlert("No Selection", "Please select a notification to decline.", Alert.AlertType.WARNING);
         }

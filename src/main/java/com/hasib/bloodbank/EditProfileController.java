@@ -50,9 +50,13 @@ public class EditProfileController extends MainMenuController implements Initial
 
     }
     private boolean isAuthenticate() throws SQLException, ClassNotFoundException {
+        String userPhone = User.getInstance().getUserPhoneNo();
+        String password = confirmPasswordField.getText();
 
-        return AuthenticationController.isAuthentic(User.getInstance().getUserPhoneNo(), confirmPasswordField.getText());
-
+        if (userPhone != null && !userPhone.isEmpty() && password != null && !password.isEmpty()) {
+            return AuthenticationController.authenticateWithPhoneNo(userPhone, password);
+        }
+        return false;
     }
 
     @FXML

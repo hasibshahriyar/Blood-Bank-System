@@ -66,15 +66,11 @@ public class MainMenuController implements Initializable {
 
     @FXML
     public void onClickUserProfileButton(ActionEvent event) {
-
         try {
             AnchorPane anchorPane = FxmlLoader.getAnchorPane("profile-view.fxml");
             borderPane.setCenter(anchorPane);
-
-
-
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Error loading user profile", e);
         }
     }
 
@@ -84,7 +80,7 @@ public class MainMenuController implements Initializable {
             AnchorPane anchorPane = FxmlLoader.getAnchorPane("request-blood-view.fxml");
             borderPane.setCenter(anchorPane);
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Error loading blood request form", e);
         }
     }
 
@@ -94,7 +90,7 @@ public class MainMenuController implements Initializable {
             AnchorPane anchorPane = FxmlLoader.getAnchorPane("donate-blood-view.fxml");
             borderPane.setCenter(anchorPane);
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Error loading blood donation form", e);
         }
     }
 
@@ -104,34 +100,63 @@ public class MainMenuController implements Initializable {
             AnchorPane anchorPane = FxmlLoader.getAnchorPane("notification-view.fxml");
             borderPane.setCenter(anchorPane);
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Error loading notifications", e);
         }
     }
 
     @FXML
     public void onClickLogOutButton(ActionEvent event) {
         try {
+            // Clear user session
+            User.getInstance().clearSession();
+
             root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("login-view.fxml")));
             mainMenuStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            mainMenuStage.setTitle("BloodBank");
+            mainMenuStage.setTitle("Blood Bank Management System");
             mainMenuStage.setScene(new Scene(root));
-            mainMenuStage.getIcons().add(new Image("E:\\IdeaProjects\\blood-donation-system\\src\\main\\resources\\com\\mahbubalam\\blooddonationsystem\\Rokto2.png"));
+
+            // Try to load icon from resources, fall back gracefully if not found
+            try {
+                Image icon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("img/bloodtype_FILL0_wght400_GRAD0_opsz48.png")));
+                mainMenuStage.getIcons().add(icon);
+            } catch (Exception e) {
+                System.out.println("Could not load application icon");
+            }
+
             mainMenuStage.setResizable(false);
             mainMenuStage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Error during logout", e);
         }
     }
 
-
     public void onClickUserChangePasswordButton(ActionEvent event) throws IOException {
-        AnchorPane anchorPane = FxmlLoader.getAnchorPane("change-password.fxml");
-        borderPane.setCenter(anchorPane);
+        try {
+            AnchorPane anchorPane = FxmlLoader.getAnchorPane("change-password.fxml");
+            borderPane.setCenter(anchorPane);
+        } catch (Exception e) {
+            showError("Error loading change password form", e);
+        }
     }
 
     public void onClickEditProfile(ActionEvent event) throws IOException {
-        AnchorPane anchorPane = FxmlLoader.getAnchorPane("edit-profile-view.fxml");
-        borderPane.setCenter(anchorPane);
+        try {
+            AnchorPane anchorPane = FxmlLoader.getAnchorPane("edit-profile-view.fxml");
+            borderPane.setCenter(anchorPane);
+        } catch (Exception e) {
+            showError("Error loading edit profile form", e);
+        }
     }
 
+    // Helper method for error handling
+    private void showError(String message, Exception e) {
+        System.err.println(message + ": " + e.getMessage());
+        e.printStackTrace();
+
+        // Update UI to show error message if txt field is available
+        if (txt != null) {
+            txt.setText("❌ " + message);
+            txt.setStyle("-fx-fill: #dc3545;");
+        }
+    }
 }

@@ -7,6 +7,11 @@ module com.hasib.bloodbank {
     requires activation;
     requires com.jfoenix;
 
+    // WebSocket and JSON processing libraries
+    requires Java.WebSocket;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.core;
+    requires okhttp3;
 
     opens com.hasib.bloodbank to javafx.fxml;
     exports com.hasib.bloodbank;
@@ -16,4 +21,6 @@ module com.hasib.bloodbank {
     opens com.hasib.bloodbank.server.entity to javafx.fxml;
     exports com.hasib.bloodbank.server.model;
     opens com.hasib.bloodbank.server.model to javafx.fxml;
+    exports com.hasib.bloodbank.utils;
+    opens com.hasib.bloodbank.utils to javafx.fxml;
 }

@@ -201,80 +201,99 @@ public class RegisterMenuController implements Initializable {
 
             try {
                 // Clear any previous error messages
+                clearAllWarnings();
                 addressWarning.setText("Processing registration...");
-                addressWarning.setStyle("-fx-text-fill: blue;");
+                addressWarning.setStyle("-fx-text-fill: #17a2b8;");
 
-                // Step 1: Save password first
-                Password passwordEntity = new Password(password);
-                System.out.println("Attempting to save password...");
-                boolean passwordSaved = PasswordController.savePassword(passwordEntity);
-                if (!passwordSaved) {
-                    addressWarning.setText("Failed to save password. Please try again.");
-                    addressWarning.setStyle("-fx-text-fill: red;");
-                    return;
-                }
-                System.out.println("Password saved successfully");
-
-                // Step 2: Save person
-                System.out.println("Attempting to save person with blood group: " + p.getBloodGroup() + " and gender: " + p.getGender());
-                PersonController.savePerson(
-                        p.getFirstName(),
-                        p.getLastName(),
-                        p.getPhoneNumber(),
-                        p.getEmail(),
-                        p.getDateOfBirth(),
-                        p.getBloodGroup(),
-                        p.getGender()
+                // Use the new unified registration method from AuthenticationController
+                boolean registrationSuccess = com.hasib.bloodbank.server.controller.AuthenticationController.registerUser(
+                    p.getFirstName(),
+                    p.getLastName(),
+                    p.getEmail(),
+                    p.getPhoneNumber(),
+                    p.getBloodGroup().toString(),
+                    p.getGender().toString(),
+                    p.getDateOfBirth(),
+                    password
                 );
-                System.out.println("Person saved successfully");
 
-                // Step 3: Save address
-                System.out.println("Attempting to save address...");
-                Address addressEntity = new Address(division, district, thana);
-                AddressController.saveAddress(addressEntity);
-                System.out.println("Address saved successfully");
-
-                // Step 4: Show success message and navigate
-                addressWarning.setText("Registration successful! Redirecting to login...");
-                addressWarning.setStyle("-fx-text-fill: green;");
-
-                // Add a small delay to show success message
-                new Thread(() -> {
+                if (registrationSuccess) {
+                    // If registration successful, save address separately
                     try {
-                        Thread.sleep(1500);
-                        javafx.application.Platform.runLater(() -> {
-                            try {
-                                nextPage("login-view.fxml", event);
-                            } catch (IOException e) {
-                                System.err.println("Navigation error: " + e.getMessage());
-                                addressWarning.setText("Registration successful but navigation failed.");
-                            }
-                        });
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }).start();
+                        Address addressEntity = new Address(division, district, thana);
+                        AddressController.saveAddress(addressEntity);
 
-            } catch (SQLException e) {
-                String errorMsg = "Database error: " + e.getMessage();
-                System.err.println("Registration failed: " + errorMsg);
-                e.printStackTrace();
-                addressWarning.setText("Database error occurred. Please check your connection.");
-                addressWarning.setStyle("-fx-text-fill: red;");
-            } catch (ClassNotFoundException e) {
-                String errorMsg = "Database driver error: " + e.getMessage();
-                System.err.println("Registration failed: " + errorMsg);
-                e.printStackTrace();
-                addressWarning.setText("Database configuration error. Please contact support.");
-                addressWarning.setStyle("-fx-text-fill: red;");
+                        // Show success message
+                        addressWarning.setText("✅ Registration successful! Redirecting to login...");
+                        addressWarning.setStyle("-fx-text-fill: #28a745;");
+
+                        // Add a small delay to show success message
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(1500);
+                                javafx.application.Platform.runLater(() -> {
+                                    try {
+                                        nextPage("login-view.fxml", event);
+                                    } catch (IOException e) {
+                                        System.err.println("Navigation error: " + e.getMessage());
+                                        addressWarning.setText("Registration successful but navigation failed.");
+                                        addressWarning.setStyle("-fx-text-fill: #ffc107;");
+                                    }
+                                });
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }).start();
+
+                    } catch (Exception addressError) {
+                        // Registration succeeded but address save failed
+                        System.err.println("Address save failed: " + addressError.getMessage());
+                        addressWarning.setText("⚠️ Registration successful but address save failed. You can update it later.");
+                        addressWarning.setStyle("-fx-text-fill: #ffc107;");
+
+                        // Still proceed to login after delay
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(2000);
+                                javafx.application.Platform.runLater(() -> {
+                                    try {
+                                        nextPage("login-view.fxml", event);
+                                    } catch (IOException e) {
+                                        System.err.println("Navigation error: " + e.getMessage());
+                                    }
+                                });
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }).start();
+                    }
+                } else {
+                    // Registration failed
+                    addressWarning.setText("❌ Registration failed. Email or phone number may already exist.");
+                    addressWarning.setStyle("-fx-text-fill: #dc3545;");
+                }
+
             } catch (Exception e) {
-                String errorMsg = "Unexpected error: " + e.getMessage();
+                String errorMsg = "Registration error: " + e.getMessage();
                 System.err.println("Registration failed: " + errorMsg);
                 e.printStackTrace();
-                addressWarning.setText("Registration failed: " + e.getMessage());
-                addressWarning.setStyle("-fx-text-fill: red;");
+                addressWarning.setText("❌ Registration failed: " + e.getMessage());
+                addressWarning.setStyle("-fx-text-fill: #dc3545;");
             }
         }
+    }
+
+    // Helper method to clear all warning messages
+    private void clearAllWarnings() {
+        if (firstNameWarning != null) firstNameWarning.setText("");
+        if (lastNameWarning != null) lastNameWarning.setText("");
+        if (genderWarning != null) genderWarning.setText("");
+        if (bloodGroupWarning != null) bloodGroupWarning.setText("");
+        if (dateOfBirthWarning != null) dateOfBirthWarning.setText("");
+        if (emailWarning != null) emailWarning.setText("");
+        if (mobileWarning != null) mobileWarning.setText("");
+        if (passwordWarning != null) passwordWarning.setText("");
+        if (addressWarning != null) addressWarning.setText("");
     }
 
     // Simplified event handlers that just clear warning messages

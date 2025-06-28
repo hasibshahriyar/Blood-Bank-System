@@ -284,21 +284,34 @@ public class PersonController {
             id = resultSet.getInt("address_id");
         }
         return id;
-
     }
 
-    public static String getEmailByPhoneNo(String phoneNo) throws SQLException, ClassNotFoundException {
-        String quarry = "SELECT  email FROM person WHERE phone_number='" + phoneNo + "';";
-        String email = "";
-        Connection connection = ConnectionProvider.createConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(quarry);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        while (resultSet.next()) {
-            email = resultSet.getString("email");
+    // Method to get email by phone number for password reset functionality
+    public static String getEmailByPhoneNo(String phoneNumber) throws SQLException, ClassNotFoundException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = ConnectionProvider.createConnection();
+            String query = "SELECT email FROM person WHERE phone_number = ? AND is_active = TRUE";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, phoneNumber);
+            resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("email");
+            }
+
+            return null; // Phone number not found
+
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            if (connection != null) connection.close();
         }
-        return email;
-
     }
+
     static String usingRandomUUID() {
 
         UUID randomUUID = UUID.randomUUID();

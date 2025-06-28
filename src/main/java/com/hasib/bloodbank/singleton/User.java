@@ -92,4 +92,27 @@ public class User {
         this.name = name;
     }
 
+    // Method to clear user session data during logout
+    public void clearSession() {
+        this.userId = 0;
+        this.name = null;
+        this.userEmail = null;
+        this.userPhoneNo = null;
+        this.bloodGroup = null;
+        this.message = null;
+        this.showPerson = null;
+
+        // Close network connection if exists
+        if (this.networkUtility != null) {
+            try {
+                this.networkUtility.closeConnection();
+            } catch (Exception e) {
+                System.err.println("Error closing network connection: " + e.getMessage());
+            }
+            this.networkUtility = null;
+        }
+
+        System.out.println("User session cleared successfully");
+    }
+
 }

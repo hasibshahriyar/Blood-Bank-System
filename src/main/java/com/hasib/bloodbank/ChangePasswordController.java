@@ -20,32 +20,50 @@ public class ChangePasswordController {
 
     public void onClickChangePassword(ActionEvent event) throws SQLException, ClassNotFoundException {
         if (check()){
-            if (AuthenticationController.isAuthentic(User.getInstance().getUserPhoneNo(), oldPasswordField.getText())){
+            if (AuthenticationController.authenticateWithPhoneNo(User.getInstance().getUserPhoneNo(), oldPasswordField.getText())){
                 if (Objects.equals(newPasswordField.getText(), confirmPasswordField.getText())){
-                    boolean f =AuthenticationController.changePassword(User.getInstance().getUserPhoneNo(), newPasswordField.getText());
-                    if (f){warning.setText("password upgraded");
+                    boolean f = AuthenticationController.changePassword(User.getInstance().getUserPhoneNo(), newPasswordField.getText());
+                    if (f){
+                        warning.setText("✅ Password updated successfully!");
+                        warning.setStyle("-fx-fill: #28a745;");
                         oldPasswordField.setText("");
                         newPasswordField.setText("");
                         confirmPasswordField.setText("");
                     }
-                    else warning.setText("something wrong");
-                }else warning.setText("password confirmation failed");
-
-            }else warning.setText("please enter your valid old password");
+                    else {
+                        warning.setText("❌ Something went wrong. Please try again.");
+                        warning.setStyle("-fx-fill: #dc3545;");
+                    }
+                }else {
+                    warning.setText("⚠️ Password confirmation failed. Passwords don't match.");
+                    warning.setStyle("-fx-fill: #ffc107;");
+                }
+            }else {
+                warning.setText("❌ Please enter your valid old password");
+                warning.setStyle("-fx-fill: #dc3545;");
+            }
         }
     }
 
     private boolean check(){
         if (oldPasswordField.getText().isBlank()){
-            warning.setText("give your old password");
+            warning.setText("⚠️ Please enter your old password");
+            warning.setStyle("-fx-fill: #ffc107;");
             return false;
         }
         if (newPasswordField.getText().isBlank()){
-            warning.setText("give your new password");
+            warning.setText("⚠️ Please enter a new password");
+            warning.setStyle("-fx-fill: #ffc107;");
             return false;
         }
         if (confirmPasswordField.getText().isBlank()){
-            warning.setText("confirm Password");
+            warning.setText("⚠️ Please confirm your new password");
+            warning.setStyle("-fx-fill: #ffc107;");
+            return false;
+        }
+        if (newPasswordField.getText().length() < 6){
+            warning.setText("⚠️ Password must be at least 6 characters long");
+            warning.setStyle("-fx-fill: #ffc107;");
             return false;
         }
         return true;

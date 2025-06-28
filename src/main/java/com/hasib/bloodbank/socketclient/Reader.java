@@ -5,6 +5,8 @@ import com.hasib.bloodbank.utils.NetworkUtility;
 import com.hasib.bloodbank.utils.ThreadPoolManager;
 import javafx.application.Platform;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Reader implements Runnable {
@@ -88,6 +90,9 @@ public class Reader implements Runnable {
                     case "donationDeclined":
                         handleDonationDeclined(senderName);
                         break;
+                    case "bloodRequest":
+                        handleUrgentBloodRequest(senderId, senderName, parts);
+                        break;
                     default:
                         handleGenericMessage(message);
                         break;
@@ -105,8 +110,8 @@ public class Reader implements Runnable {
     private void handleBloodRequest(String senderId, String senderName, String[] parts) {
         if (parts.length >= 5) {
             String hospitalName = parts[4];
-            String formattedMessage = "🩸 Blood Request from " + senderName +
-                    " for " + hospitalName + " hospital";
+            String formattedMessage = "🩸 URGENT: Blood Request from " + senderName +
+                    " at " + hospitalName + ". Type your response to help!";
 
             if (userProfileController != null) {
                 userProfileController.handleMessage(formattedMessage);
@@ -119,11 +124,14 @@ public class Reader implements Runnable {
     private void handleChatMessage(String senderName, String[] parts) {
         if (parts.length >= 5) {
             String messageContent = parts[4];
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
             String formattedMessage = senderName + ": " + messageContent;
 
             if (userProfileController != null) {
                 userProfileController.handleMessage(formattedMessage);
             }
+
+            System.out.println("[" + timestamp + "] Chat message from " + senderName + ": " + messageContent);
         }
     }
 
@@ -138,6 +146,22 @@ public class Reader implements Runnable {
         String message = "❌ " + senderName + " has declined your donation request.";
         if (userProfileController != null) {
             userProfileController.handleMessage(message);
+        }
+    }
+
+    private void handleUrgentBloodRequest(String senderId, String senderName, String[] parts) {
+        if (parts.length >= 6) {
+            String hospitalInfo = parts[4];
+            String bloodType = parts[5];
+            String formattedMessage = "🚨 URGENT BLOOD REQUEST 🚨\n" +
+                    "👤 From: " + senderName + "\n" +
+                    "🩸 Blood Type Needed: " + bloodType + "\n" +
+                    "🏥 Hospital: " + hospitalInfo + "\n" +
+                    "⏰ Please respond immediately if you can help!";
+
+            if (userProfileController != null) {
+                userProfileController.handleMessage(formattedMessage);
+            }
         }
     }
 

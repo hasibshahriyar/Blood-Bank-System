@@ -1,7 +1,6 @@
 package com.hasib.bloodbank;
 
 import com.hasib.bloodbank.server.controller.AddressController;
-import com.hasib.bloodbank.server.controller.BloodRequestController;
 import com.hasib.bloodbank.server.controller.DonationController;
 import com.hasib.bloodbank.server.controller.PersonController;
 import com.hasib.bloodbank.server.entity.Address;
@@ -10,12 +9,10 @@ import com.hasib.bloodbank.server.entity.Donation;
 import com.hasib.bloodbank.server.entity.Person;
 import com.hasib.bloodbank.server.model.ShowPerson;
 import com.hasib.bloodbank.singleton.User;
-import com.hasib.bloodbank.socketclient.Reader;
 import com.hasib.bloodbank.utils.Data;
 import com.hasib.bloodbank.utils.NetworkUtility;
 import com.hasib.bloodbank.utils.ThreadPoolManager;
-import com.hasib.bloodbank.utils.NotificationManager;
-import com.hasib.bloodbank.utils.WebSocketChatClient;
+import com.hasib.bloodbank.socketclient.Reader;
 import com.jfoenix.controls.JFXTextArea;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -45,12 +42,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UserProfileController implements Initializable {
-    // New WebSocket-based communication system
-    private WebSocketChatClient chatClient;
+    // Socket-based communication system (replacing WebSocket simulation)
+    private Reader socketReader;
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
     private final AtomicBoolean connectionAttempting = new AtomicBoolean(false);
     private final ThreadPoolManager threadPool = ThreadPoolManager.getInstance();
-    private final NotificationManager notificationManager = NotificationManager.getInstance();
 
     // FXML Components
     public JFXTextArea textArea;
@@ -68,7 +64,6 @@ public class UserProfileController implements Initializable {
     // Data members
     User user = User.getInstance();
     ShowPerson showPerson;
-    String gen;
     Person person;
     Address personAddress;
     NetworkUtility networkUtility;
@@ -159,7 +154,8 @@ public class UserProfileController implements Initializable {
     void getPerson() {
         try {
             this.person = PersonController.getPersonById(showPerson.getId());
-            this.personAddress = AddressController.getAddressById(showPerson.getId());
+            // Fix: Use person ID to get address instead of potentially shared address ID
+            this.personAddress = AddressController.getAddressByPersonId(showPerson.getId());
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("Database error: " + e.getMessage(), e);
         }
@@ -193,43 +189,37 @@ public class UserProfileController implements Initializable {
     }
 
     private void establishNetworkConnection() throws IOException {
-        // Test internet connectivity first
-        try (Socket testSocket = new Socket()) {
-            testSocket.connect(new InetSocketAddress("8.8.8.8", 53), 5000);
-            System.out.println("💻 Internet connectivity confirmed");
+        try {
+            System.out.println("🔄 Connecting to BloodBank chat server on localhost:9999...");
 
-            // Initialize WebSocket chat client with proper parameters
-            String currentUserName = showPerson != null ? showPerson.getName() : "User_" + user.getUserId();
-            // Convert integer userId to String for WebSocketChatClient constructor
-            chatClient = new WebSocketChatClient(String.valueOf(user.getUserId()), currentUserName);
+            // Connect to your existing socket server
+            networkUtility = new NetworkUtility("localhost", 9999);
 
-            // Set up message and status handlers
-            chatClient.setMessageHandler(this::handleMessage);
-            chatClient.setStatusHandler(status -> updateWarning(status, "-fx-text-fill: #17a2b8;"));
+            if (!networkUtility.isConnected()) {
+                throw new IOException("Failed to connect to chat server");
+            }
 
-            // Connect to chat server
-            chatClient.connect().thenAccept(connected -> {
-                if (connected) {
-                    isConnected.set(true);
-                    connectionAttempting.set(false);
-                    Platform.runLater(() -> {
-                        updateWarning("✅ Connected successfully - Ready for live chat", "-fx-text-fill: #28a745;");
-                        updateChatArea("🌟 Welcome to live chat! You can now communicate with donors/recipients.");
-                    });
-                } else {
-                    throw new RuntimeException("Failed to establish chat connection");
-                }
-            }).exceptionally(throwable -> {
-                connectionAttempting.set(false);
-                Platform.runLater(() -> {
-                    updateWarning("❌ Connection failed: " + throwable.getMessage(), "-fx-text-fill: #dc3545;");
-                    updateChatArea("❌ Failed to connect to chat server. Using simulation mode...");
-                });
-                return null;
+            // Send user ID to server for identification
+            networkUtility.write(user.getUserId());
+
+            System.out.println("✅ Connected to chat server as user ID: " + user.getUserId());
+
+            // Start the socket reader for incoming messages
+            socketReader = new Reader(networkUtility, this);
+            threadPool.executeNetworkTask(socketReader);
+
+            isConnected.set(true);
+            connectionAttempting.set(false);
+
+            Platform.runLater(() -> {
+                updateWarning("✅ Connected to BloodBank chat server - Ready for live chat", "-fx-text-fill: #28a745;");
+                updateChatArea("🌟 Welcome to BloodBank live chat! You can now communicate with donors/recipients.");
             });
 
         } catch (IOException e) {
-            throw new IOException("Network connection failed: " + e.getMessage(), e);
+            isConnected.set(false);
+            connectionAttempting.set(false);
+            throw new IOException("Failed to establish connection to chat server: " + e.getMessage(), e);
         }
     }
 
@@ -246,7 +236,7 @@ public class UserProfileController implements Initializable {
         }
     }
 
-    // Enhanced send method using WebSocket for real user-to-user communication
+    // Enhanced send method using socket for real user-to-user communication
     public void send(ActionEvent event) {
         String messageText = textField != null ? textField.getText() : "";
 
@@ -258,14 +248,14 @@ public class UserProfileController implements Initializable {
         updateWarning("🔄 Sending message...", "-fx-text-fill: #17a2b8;");
         System.out.println("📤 Attempting to send message: " + messageText);
 
-        if (!isConnected.get() || chatClient == null) {
+        if (!isConnected.get() || networkUtility == null) {
             updateWarning("❌ Not connected to chat server. Attempting to reconnect...", "-fx-text-fill: #dc3545;");
             updateChatArea("❌ Connection lost. Trying to reconnect...");
             initializeChatConnection();
             return;
         }
 
-        // Send message using WebSocket client
+        // Send message using socket through NetworkUtility
         threadPool.executeNetworkTask(() -> {
             try {
                 // Show immediate feedback in chat
@@ -274,17 +264,21 @@ public class UserProfileController implements Initializable {
                     if (textField != null) textField.clear();
                 });
 
-                // Send message through WebSocket
-                boolean messageSent = chatClient.sendMessage(messageText.trim());
+                // Create message data for broadcast to all connected users
+                // Format: senderId$receiverId$senderName$messageType$messageContent
+                String senderName = showPerson != null ? showPerson.getName() : "User " + user.getUserId();
+                String broadcastMessage = user.getUserId() + "$0$" + senderName + "$message$" + messageText.trim();
 
-                if (messageSent) {
-                    Platform.runLater(() -> {
-                        updateWarning("✅ Message sent to all connected users", "-fx-text-fill: #28a745;");
-                        System.out.println("✅ Message delivery confirmed");
-                    });
-                } else {
-                    throw new RuntimeException("Message could not be sent");
-                }
+                Data data = new Data();
+                data.message = broadcastMessage;
+
+                // Send message through socket
+                networkUtility.write(data);
+
+                Platform.runLater(() -> {
+                    updateWarning("✅ Message sent to all connected users", "-fx-text-fill: #28a745;");
+                    System.out.println("✅ Message delivery confirmed");
+                });
 
             } catch (Exception e) {
                 System.err.println("❌ Failed to send message: " + e.getMessage());
@@ -506,9 +500,17 @@ public class UserProfileController implements Initializable {
             isConnected.set(false);
             connectionAttempting.set(false);
 
-            if (chatClient != null) {
-                chatClient.disconnect();
+            if (networkUtility != null) {
+                networkUtility.closeConnection();
+                networkUtility = null;
             }
+
+            if (socketReader != null) {
+                // The Reader class handles its own cleanup when the NetworkUtility closes
+                socketReader = null;
+            }
+
+            System.out.println("🧹 Network connections cleaned up successfully");
 
         } catch (Exception e) {
             System.err.println("Error during cleanup: " + e.getMessage());

@@ -108,7 +108,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                com.hasib.bloodbank/com.hasib.bloodbank..Main
+                                com.hasib.bloodbank.BloodBankApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

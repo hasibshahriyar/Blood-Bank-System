@@ -33,7 +33,59 @@ public class AddressController {
 
     }
 
+    public static boolean updateAddressByPersonId(int personId, Address address) {
+        Connection connection = null;
+        boolean isUpdated = false;
+        try {
+            connection = ConnectionProvider.createConnection();
+
+            // First check if an address exists for this person
+            String checkQuery = "SELECT id FROM address WHERE person_id = ?";
+            PreparedStatement checkStmt = connection.prepareStatement(checkQuery);
+            checkStmt.setInt(1, personId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next()) {
+                // Address exists, update it
+                String updateQuery = "UPDATE address SET division = ?, district = ?, thana = ? WHERE person_id = ?";
+                PreparedStatement updateStmt = connection.prepareStatement(updateQuery);
+                updateStmt.setString(1, address.getDivision());
+                updateStmt.setString(2, address.getDistrict());
+                updateStmt.setString(3, address.getSubDistrict());
+                updateStmt.setInt(4, personId);
+                updateStmt.executeUpdate();
+                isUpdated = true;
+            } else {
+                // No address exists, create a new one
+                String insertQuery = "INSERT INTO address (person_id, division, district, thana) VALUES (?, ?, ?, ?)";
+                PreparedStatement insertStmt = connection.prepareStatement(insertQuery);
+                insertStmt.setInt(1, personId);
+                insertStmt.setString(2, address.getDivision());
+                insertStmt.setString(3, address.getDistrict());
+                insertStmt.setString(4, address.getSubDistrict());
+                insertStmt.executeUpdate();
+                isUpdated = true;
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("Error updating address for person ID " + personId + ": " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
+        return isUpdated;
+    }
+
+    // Keep the old method for backward compatibility but mark it as deprecated
+    @Deprecated
     public static boolean updateAddress(int id, Address address) {
+        System.err.println("WARNING: updateAddress(int id, Address address) is deprecated. Use updateAddressByPersonId() instead.");
         Connection connection = null;
         boolean isUpdated = false;
         try {
@@ -88,4 +140,24 @@ public class AddressController {
         return address ;
     }
 
+    public static Address getAddressByPersonId(int personId) throws SQLException, ClassNotFoundException {
+        Address address = null;
+        Connection connection = ConnectionProvider.createConnection();
+
+        // Use parameterized query to prevent SQL injection
+        String query = "SELECT * FROM address WHERE person_id = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, personId);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next()) {
+            String district = resultSet.getString("district");
+            String subDistrict = resultSet.getString("thana");
+            String division = resultSet.getString("division");
+            address = new Address(division, district, subDistrict);
+        }
+
+        connection.close();
+        return address;
+    }
 }

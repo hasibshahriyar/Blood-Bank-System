@@ -62,20 +62,32 @@ public class EditProfileController extends MainMenuController implements Initial
     @FXML
     public void onClickSaveButton(ActionEvent event) throws SQLException, ClassNotFoundException {
         if (isAuthenticate()){
-            int id = PersonController.getAddressId(User.getInstance().getUserId());
-            PersonController.updateName(firstNameTextField.getText(),lastNameTextField.getText(),User.getInstance().getUserId());
-            AddressController.updateAddress(id,new Address(divisionComboBox.getValue(),districtComboBox.getValue(),thanaTextField.getText()));
-            User.getInstance().setName(firstNameTextField.getText()+" "+lastNameTextField.getText());
-        }else warning.setText("please enter a valid password");
+            // Fix: Use person ID instead of address ID to update address
+            int personId = User.getInstance().getUserId();
 
-//        try {
-//            root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("mainmenu-view.fxml")));
-//            mainMenuStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-//            mainMenuStage.setTitle("BloodBank");
-//            mainMenuStage.setScene(new Scene(root));
-//            mainMenuStage.show();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+            // Update person name
+            PersonController.updateName(firstNameTextField.getText(), lastNameTextField.getText(), personId);
+
+            // Fix: Use the new person-based address update method
+            boolean addressUpdated = AddressController.updateAddressByPersonId(
+                personId,
+                new Address(divisionComboBox.getValue(), districtComboBox.getValue(), thanaTextField.getText())
+            );
+
+            if (addressUpdated) {
+                System.out.println("✅ Address updated successfully for user ID: " + personId);
+                User.getInstance().setName(firstNameTextField.getText() + " " + lastNameTextField.getText());
+                warning.setText("Profile updated successfully!");
+                warning.setStyle("-fx-text-fill: green;");
+            } else {
+                warning.setText("Failed to update address. Please try again.");
+                warning.setStyle("-fx-text-fill: red;");
+            }
+        } else {
+            warning.setText("Please enter a valid password");
+            warning.setStyle("-fx-text-fill: red;");
+        }
+
+        // ...existing navigation code...
     }
 }

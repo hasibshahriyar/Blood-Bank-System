@@ -22,8 +22,8 @@ public class WebSocketChatClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private Consumer<String> messageHandler;
     private Consumer<String> statusHandler;
-    private String userId;
-    private String userName;
+    private final String userId;
+    private final String userName;
 
     public WebSocketChatClient(String userId, String userName) {
         this.userId = userId;

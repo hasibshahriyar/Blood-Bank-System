@@ -13,14 +13,23 @@ module com.hasib.bloodbank {
     requires com.fasterxml.jackson.core;
     requires okhttp3;
 
-    opens com.hasib.bloodbank to javafx.fxml;
+    // Remove transitive modifiers - they're not needed here
+    requires java.desktop;
+    requires java.base;
+
+    // Combine the opens declarations to avoid duplicates
+    opens com.hasib.bloodbank to javafx.fxml, com.fasterxml.jackson.databind;
+
     exports com.hasib.bloodbank;
     exports com.hasib.bloodbank.singleton;
-    opens com.hasib.bloodbank.singleton to javafx.fxml;
+    opens com.hasib.bloodbank.singleton to javafx.fxml, com.fasterxml.jackson.databind;
+
     exports com.hasib.bloodbank.server.entity;
-    opens com.hasib.bloodbank.server.entity to javafx.fxml;
+    opens com.hasib.bloodbank.server.entity to javafx.fxml, com.fasterxml.jackson.databind;
+
     exports com.hasib.bloodbank.server.model;
-    opens com.hasib.bloodbank.server.model to javafx.fxml;
+    opens com.hasib.bloodbank.server.model to javafx.fxml, com.fasterxml.jackson.databind;
+
     exports com.hasib.bloodbank.utils;
-    opens com.hasib.bloodbank.utils to javafx.fxml;
+    opens com.hasib.bloodbank.utils to javafx.fxml, com.fasterxml.jackson.databind;
 }

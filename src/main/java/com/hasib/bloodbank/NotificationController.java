@@ -1,5 +1,6 @@
 package com.hasib.bloodbank;
 
+import com.hasib.bloodbank.server.controller.ChatController;
 import com.hasib.bloodbank.server.provider.ConnectionProvider;
 import com.hasib.bloodbank.singleton.User;
 import com.hasib.bloodbank.utils.ThreadPoolManager;
@@ -196,20 +197,46 @@ public class NotificationController implements Initializable {
         if (selectedNotification != null) {
             threadPool.executeDatabaseTask(() -> {
                 try {
+                    // Mark notification as read
                     markNotificationAsRead(selectedNotification.getNotificationId());
 
                     if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
                         // Update the blood request status to ACCEPTED
                         updateBloodRequestStatus(selectedNotification.getNotificationId(), "ACCEPTED");
 
-                        // Create notification for the requester
+                        // Get requester information for detailed notification
                         int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
+                        String donorName = getDonorNameFromUserId(user.getUserId());
+                        String donorPhone = getDonorPhoneFromUserId(user.getUserId());
+
                         if (requesterId > 0) {
-                            createResponseNotification(requesterId, "Your blood request has been ACCEPTED! The donor will contact you soon.");
+                            // Create detailed acceptance notification for the requester
+                            String acceptanceMessage = String.format(
+                                "🎉 Great News! Your blood request has been ACCEPTED!\n\n" +
+                                "✅ Donor: %s\n" +
+                                "📞 Contact: %s\n" +
+                                "⏰ Please coordinate the donation time and location.\n\n" +
+                                "💝 Thank you for using our Blood Bank system!",
+                                donorName, donorPhone
+                            );
+
+                            createResponseNotification(requesterId, "Blood Request Accepted", acceptanceMessage, "ACCEPTED");
+
+                            // Also create a chat message for real-time communication
+                            try {
+                                ChatController.sendBloodRequestMessage(
+                                    user.getUserId(),
+                                    requesterId,
+                                    "I have accepted your blood request. Let's coordinate!",
+                                    "ACCEPTED"
+                                );
+                            } catch (Exception chatError) {
+                                System.err.println("Chat notification failed: " + chatError.getMessage());
+                            }
                         }
 
                         Platform.runLater(() -> {
-                            showAlert("Success", "Blood request accepted successfully! The requester has been notified.", Alert.AlertType.INFORMATION);
+                            showAlert("Success", "Blood request accepted successfully! The requester has been notified with your contact details.", Alert.AlertType.INFORMATION);
                             loadNotifications(); // Refresh the list
                         });
                     } else {
@@ -221,13 +248,13 @@ public class NotificationController implements Initializable {
 
                 } catch (SQLException | ClassNotFoundException e) {
                     Platform.runLater(() -> {
-                        showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
+                        showAlert("Error", "Failed to process acceptance: " + e.getMessage(), Alert.AlertType.ERROR);
                     });
                     e.printStackTrace();
                 }
             });
         } else {
-            showAlert("No Selection", "Please select a notification to accept.", Alert.AlertType.WARNING);
+            showAlert("No Selection", "Please select a blood request notification to accept.", Alert.AlertType.WARNING);
         }
     }
 
@@ -236,20 +263,47 @@ public class NotificationController implements Initializable {
         if (selectedNotification != null) {
             threadPool.executeDatabaseTask(() -> {
                 try {
+                    // Mark notification as read
                     markNotificationAsRead(selectedNotification.getNotificationId());
 
                     if ("Blood_Request".equals(selectedNotification.getNotificationType())) {
                         // Update the blood request status to DECLINED
                         updateBloodRequestStatus(selectedNotification.getNotificationId(), "DECLINED");
 
-                        // Create notification for the requester
+                        // Get requester information for detailed notification
                         int requesterId = getRequesterFromNotification(selectedNotification.getNotificationId());
+                        String donorName = getDonorNameFromUserId(user.getUserId());
+
                         if (requesterId > 0) {
-                            createResponseNotification(requesterId, "Your blood request has been declined. Please try contacting other donors.");
+                            // Create detailed decline notification for the requester
+                            String declineMessage = String.format(
+                                "😔 Blood Request Update\n\n" +
+                                "❌ Unfortunately, %s cannot fulfill your blood request at this time.\n\n" +
+                                "💡 Suggestions:\n" +
+                                "• Try contacting other available donors\n" +
+                                "• Check nearby blood banks\n" +
+                                "• Post your request in emergency groups\n\n" +
+                                "🤝 Don't give up - there are many willing donors in our community!",
+                                donorName
+                            );
+
+                            createResponseNotification(requesterId, "Blood Request Declined", declineMessage, "DECLINED");
+
+                            // Send chat message for real-time communication
+                            try {
+                                ChatController.sendMessage(
+                                    ChatController.getOrCreatePrivateConversation(user.getUserId(), requesterId),
+                                    user.getUserId(),
+                                    "I'm sorry, but I cannot fulfill your blood request right now. Please try other donors.",
+                                    "TEXT"
+                                );
+                            } catch (Exception chatError) {
+                                System.err.println("Chat notification failed: " + chatError.getMessage());
+                            }
                         }
 
                         Platform.runLater(() -> {
-                            showAlert("Success", "Blood request declined. The requester has been notified.", Alert.AlertType.INFORMATION);
+                            showAlert("Request Declined", "Blood request declined. The requester has been notified to seek alternative donors.", Alert.AlertType.INFORMATION);
                             loadNotifications(); // Refresh the list
                         });
                     } else {
@@ -261,13 +315,13 @@ public class NotificationController implements Initializable {
 
                 } catch (SQLException | ClassNotFoundException e) {
                     Platform.runLater(() -> {
-                        showAlert("Error", "Failed to process request: " + e.getMessage(), Alert.AlertType.ERROR);
+                        showAlert("Error", "Failed to process decline: " + e.getMessage(), Alert.AlertType.ERROR);
                     });
                     e.printStackTrace();
                 }
             });
         } else {
-            showAlert("No Selection", "Please select a notification to decline.", Alert.AlertType.WARNING);
+            showAlert("No Selection", "Please select a blood request notification to decline.", Alert.AlertType.WARNING);
         }
     }
 
@@ -314,15 +368,16 @@ public class NotificationController implements Initializable {
         return requesterId;
     }
 
-    private void createResponseNotification(int personId, String message) throws SQLException, ClassNotFoundException {
+    private void createResponseNotification(int personId, String title, String message, String status) throws SQLException, ClassNotFoundException {
         Connection connection = ConnectionProvider.createConnection();
 
         String query = "INSERT INTO notifications (person_id, notification_type, title, message, is_read, created_date) " +
-                "VALUES (?, 'Donation_Response', 'Blood Request Response', ?, FALSE, CURRENT_TIMESTAMP)";
+                "VALUES (?, 'Donation_Response', ?, ?, FALSE, CURRENT_TIMESTAMP)";
 
         PreparedStatement stmt = connection.prepareStatement(query);
         stmt.setInt(1, personId);
-        stmt.setString(2, message);
+        stmt.setString(2, title);
+        stmt.setString(3, message);
         stmt.executeUpdate();
 
         connection.close();
@@ -339,5 +394,39 @@ public class NotificationController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private String getDonorNameFromUserId(int userId) throws SQLException, ClassNotFoundException {
+        Connection connection = ConnectionProvider.createConnection();
+        String query = "SELECT CONCAT(first_name, ' ', last_name) as full_name FROM person WHERE id = ?";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, userId);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        String name = "Unknown User";
+        if (resultSet.next()) {
+            name = resultSet.getString("full_name");
+        }
+
+        connection.close();
+        return name;
+    }
+
+    private String getDonorPhoneFromUserId(int userId) throws SQLException, ClassNotFoundException {
+        Connection connection = ConnectionProvider.createConnection();
+        String query = "SELECT phone_number FROM person WHERE id = ?";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, userId);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        String phone = "Contact via app";
+        if (resultSet.next()) {
+            phone = resultSet.getString("phone_number");
+        }
+
+        connection.close();
+        return phone;
     }
 }

@@ -1,6 +1,8 @@
 package com.hasib.bloodbank;
 
 import com.hasib.bloodbank.server.controller.AddressController;
+import com.hasib.bloodbank.server.controller.BloodRequestController;
+import com.hasib.bloodbank.server.controller.ChatController;
 import com.hasib.bloodbank.server.controller.DonationController;
 import com.hasib.bloodbank.server.controller.PersonController;
 import com.hasib.bloodbank.server.entity.Address;
@@ -9,12 +11,10 @@ import com.hasib.bloodbank.server.entity.Donation;
 import com.hasib.bloodbank.server.entity.Person;
 import com.hasib.bloodbank.server.model.ShowPerson;
 import com.hasib.bloodbank.singleton.User;
-import com.hasib.bloodbank.utils.Data;
-import com.hasib.bloodbank.utils.NetworkUtility;
 import com.hasib.bloodbank.utils.ThreadPoolManager;
-import com.hasib.bloodbank.socketclient.Reader;
 import com.jfoenix.controls.JFXTextArea;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -28,8 +28,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.URL;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -39,14 +37,12 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UserProfileController implements Initializable {
-    // Socket-based communication system (replacing WebSocket simulation)
-    private Reader socketReader;
-    private final AtomicBoolean isConnected = new AtomicBoolean(false);
-    private final AtomicBoolean connectionAttempting = new AtomicBoolean(false);
+    // Database-backed chat system (replacing socket-based communication)
     private final ThreadPoolManager threadPool = ThreadPoolManager.getInstance();
+    private int currentConversationId = 0;
+    private boolean isOnline = false;
 
     // FXML Components
     public JFXTextArea textArea;
@@ -66,7 +62,6 @@ public class UserProfileController implements Initializable {
     ShowPerson showPerson;
     Person person;
     Address personAddress;
-    NetworkUtility networkUtility;
 
     // Enhanced helper methods for better UI feedback
     private void updateWarning(String text, String style) {
@@ -91,8 +86,6 @@ public class UserProfileController implements Initializable {
             if (textArea != null) {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
                 textArea.appendText("\n[" + timestamp + "] " + message);
-
-                // Auto-scroll to bottom
                 textArea.setScrollTop(Double.MAX_VALUE);
             }
         });
@@ -113,18 +106,18 @@ public class UserProfileController implements Initializable {
 
         // Initialize chat area with welcome message
         if (textArea != null) {
-            textArea.setText("💬 Live Chat Initialized\n🔄 Connecting to communication server...");
+            textArea.setText("💬 Database Chat System Initialized\n🔄 Setting up communication...");
         }
 
         // Load person data in background thread
         threadPool.executeDatabaseTask(() -> {
             try {
                 getPerson();
+                initializeDatabaseChat();
 
                 // Update UI on JavaFX Application Thread
                 Platform.runLater(() -> {
                     updateUI();
-                    initializeChatConnection();
                 });
             } catch (Exception e) {
                 updateWarning("Error loading profile: " + e.getMessage(), "-fx-text-fill: #dc3545; -fx-font-weight: bold;");
@@ -154,89 +147,84 @@ public class UserProfileController implements Initializable {
     void getPerson() {
         try {
             this.person = PersonController.getPersonById(showPerson.getId());
-            // Fix: Use person ID to get address instead of potentially shared address ID
             this.personAddress = AddressController.getAddressByPersonId(showPerson.getId());
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("Database error: " + e.getMessage(), e);
         }
     }
 
-    private void initializeChatConnection() {
-        if (connectionAttempting.get()) {
-            return; // Avoid multiple connection attempts
-        }
+    private void initializeDatabaseChat() {
+        updateWarning("🔄 Initializing database chat system...", "-fx-text-fill: #17a2b8;");
 
-        connectionAttempting.set(true);
-        updateWarning("🔄 Establishing secure connection...", "-fx-text-fill: #17a2b8;");
-
-        // Initialize network connection in background
-        threadPool.executeNetworkTask(() -> {
+        threadPool.executeDatabaseTask(() -> {
             try {
-                establishNetworkConnection();
-            } catch (Exception e) {
-                connectionAttempting.set(false);
-                updateWarning("❌ Connection failed: " + e.getMessage(), "-fx-text-fill: #dc3545;");
-                updateChatArea("❌ Failed to connect to chat server. Retrying in 10 seconds...");
+                // Set user as online
+                ChatController.updateUserOnlineStatus(user.getUserId(), true);
+                isOnline = true;
 
-                // Auto-retry connection after 10 seconds
-                threadPool.scheduleTask(() -> {
-                    if (!isConnected.get()) {
-                        initializeChatConnection();
-                    }
-                }, 10, TimeUnit.SECONDS);
+                // Get or create conversation with the donor/recipient
+                if (showPerson != null) {
+                    currentConversationId = ChatController.getOrCreatePrivateConversation(
+                        user.getUserId(), showPerson.getId());
+
+                    // Load recent messages
+                    loadRecentMessages();
+                }
+
+                Platform.runLater(() -> {
+                    updateWarning("✅ Database chat system ready - Secure messaging active", "-fx-text-fill: #28a745;");
+                    updateChatArea("🌟 Welcome to secure BloodBank messaging! Chat directly with " +
+                        (showPerson != null ? showPerson.getName() : "other users"));
+                });
+
+                // Start periodic message refresh
+                scheduleMessageRefresh();
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    updateWarning("❌ Chat initialization failed: " + e.getMessage(), "-fx-text-fill: #dc3545;");
+                    updateChatArea("❌ Unable to connect to messaging system. Please try again later.");
+                });
             }
         });
     }
 
-    private void establishNetworkConnection() throws IOException {
-        try {
-            System.out.println("🔄 Connecting to BloodBank chat server on localhost:9999...");
-
-            // Connect to your existing socket server
-            networkUtility = new NetworkUtility("localhost", 9999);
-
-            if (!networkUtility.isConnected()) {
-                throw new IOException("Failed to connect to chat server");
-            }
-
-            // Send user ID to server for identification
-            networkUtility.write(user.getUserId());
-
-            System.out.println("✅ Connected to chat server as user ID: " + user.getUserId());
-
-            // Start the socket reader for incoming messages
-            socketReader = new Reader(networkUtility, this);
-            threadPool.executeNetworkTask(socketReader);
-
-            isConnected.set(true);
-            connectionAttempting.set(false);
+    private void loadRecentMessages() throws SQLException, ClassNotFoundException {
+        if (currentConversationId > 0) {
+            ObservableList<ChatController.ChatMessage> messages =
+                ChatController.getRecentMessages(currentConversationId, user.getUserId());
 
             Platform.runLater(() -> {
-                updateWarning("✅ Connected to BloodBank chat server - Ready for live chat", "-fx-text-fill: #28a745;");
-                updateChatArea("🌟 Welcome to BloodBank live chat! You can now communicate with donors/recipients.");
+                textArea.clear();
+                textArea.appendText("💬 Recent Messages\n" + "=".repeat(50));
+
+                for (ChatController.ChatMessage message : messages) {
+                    String formattedTime = ChatController.formatTimestamp(message.getSentDate());
+                    String prefix = message.getSenderId() == user.getUserId() ? "📤 You" : "📩 " + message.getSenderName();
+
+                    textArea.appendText("\n[" + formattedTime + "] " + prefix + ": " + message.getContent());
+                }
+
+                textArea.appendText("\n" + "=".repeat(50) + "\n");
+                textArea.setScrollTop(Double.MAX_VALUE);
             });
-
-        } catch (IOException e) {
-            isConnected.set(false);
-            connectionAttempting.set(false);
-            throw new IOException("Failed to establish connection to chat server: " + e.getMessage(), e);
         }
     }
 
-    // Enhanced message handling with better formatting
-    public void handleMessage(String message) {
-        if (message != null && !message.trim().isEmpty()) {
-            updateChatArea("📩 " + message);
-
-            // Handle urgent messages with simple console output
-            if (message.toLowerCase().contains("urgent") || message.toLowerCase().contains("emergency")) {
-                System.out.println("🚨 URGENT MESSAGE RECEIVED: " + message);
-                updateWarning("🚨 Urgent message received!", "-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+    private void scheduleMessageRefresh() {
+        // Refresh messages every 30 seconds
+        threadPool.schedulePeriodicTask(() -> {
+            if (isOnline && currentConversationId > 0) {
+                try {
+                    loadRecentMessages();
+                } catch (Exception e) {
+                    System.err.println("Error refreshing messages: " + e.getMessage());
+                }
             }
-        }
+        }, 30, 30, TimeUnit.SECONDS);
     }
 
-    // Enhanced send method using socket for real user-to-user communication
+    // Enhanced send method using database chat
     public void send(ActionEvent event) {
         String messageText = textField != null ? textField.getText() : "";
 
@@ -245,89 +233,116 @@ public class UserProfileController implements Initializable {
             return;
         }
 
-        updateWarning("🔄 Sending message...", "-fx-text-fill: #17a2b8;");
-        System.out.println("📤 Attempting to send message: " + messageText);
-
-        if (!isConnected.get() || networkUtility == null) {
-            updateWarning("❌ Not connected to chat server. Attempting to reconnect...", "-fx-text-fill: #dc3545;");
-            updateChatArea("❌ Connection lost. Trying to reconnect...");
-            initializeChatConnection();
+        if (currentConversationId == 0) {
+            updateWarning("❌ No active conversation. Please try again.", "-fx-text-fill: #dc3545;");
             return;
         }
 
-        // Send message using socket through NetworkUtility
-        threadPool.executeNetworkTask(() -> {
+        updateWarning("🔄 Sending message...", "-fx-text-fill: #17a2b8;");
+
+        threadPool.executeDatabaseTask(() -> {
             try {
-                // Show immediate feedback in chat
-                Platform.runLater(() -> {
-                    updateChatArea("📤 You: " + messageText);
-                    if (textField != null) textField.clear();
-                });
-
-                // Create message data for broadcast to all connected users
-                // Format: senderId$receiverId$senderName$messageType$messageContent
-                String senderName = showPerson != null ? showPerson.getName() : "User " + user.getUserId();
-                String broadcastMessage = user.getUserId() + "$0$" + senderName + "$message$" + messageText.trim();
-
-                Data data = new Data();
-                data.message = broadcastMessage;
-
-                // Send message through socket
-                networkUtility.write(data);
+                // Send message through database
+                boolean success = ChatController.sendMessage(
+                    currentConversationId,
+                    user.getUserId(),
+                    messageText.trim(),
+                    "TEXT"
+                );
 
                 Platform.runLater(() -> {
-                    updateWarning("✅ Message sent to all connected users", "-fx-text-fill: #28a745;");
-                    System.out.println("✅ Message delivery confirmed");
-                });
-
-            } catch (Exception e) {
-                System.err.println("❌ Failed to send message: " + e.getMessage());
-
-                Platform.runLater(() -> {
-                    updateWarning("❌ Failed to send message: " + e.getMessage(), "-fx-text-fill: #dc3545;");
-                    updateChatArea("❌ Message failed to send. Check connection and try again.");
-
-                    // Restore the message text if sending failed
-                    if (textField != null) {
-                        textField.setText(messageText);
+                    if (success) {
+                        updateWarning("✅ Message sent successfully", "-fx-text-fill: #28a745;");
+                        updateChatArea("📤 You: " + messageText);
+                        if (textField != null) textField.clear();
+                    } else {
+                        updateWarning("❌ Failed to send message", "-fx-text-fill: #dc3545;");
                     }
                 });
 
-                // Try to reconnect
-                isConnected.set(false);
-                Platform.runLater(() -> initializeChatConnection());
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    updateWarning("❌ Database error: " + e.getMessage(), "-fx-text-fill: #dc3545;");
+                    updateChatArea("❌ Message failed to send. Please try again.");
+                });
             }
         });
     }
 
-    // Enhanced blood request method
+    // Enhanced blood request method with database integration and chat
     public void request(ActionEvent event) {
         if (hospitalNameTExtFild == null || hospitalNameTExtFild.getText().trim().isEmpty()) {
-            updateWarning("⚠️ Please enter hospital information before sending request", "-fx-text-fill: #ffc107;");
+            updateWarning("⚠️ Please enter hospital/emergency information before sending request", "-fx-text-fill: #ffc107;");
             return;
         }
 
         String hospitalInfo = hospitalNameTExtFild.getText().trim();
 
+        if (showPerson == null) {
+            updateWarning("❌ No donor selected for blood request", "-fx-text-fill: #dc3545;");
+            return;
+        }
+
         threadPool.executeDatabaseTask(() -> {
             try {
                 updateWarning("🔄 Sending blood request...", "-fx-text-fill: #17a2b8;");
 
-                // Send network message if connected
-                if (isConnected.get() && networkUtility != null) {
-                    Data data = new Data();
-                    data.message = user.getUserId() + "$request$" + hospitalInfo + "$" + showPerson.getBloodGroup();
-                    networkUtility.write(data.clone());
+                // Create blood request in database
+                String requestMessage = String.format("Urgent blood request for %s blood group at %s. Please respond if you can help!",
+                    showPerson.getBloodGroup(), hospitalInfo);
+
+                boolean requestSent = BloodRequestController.sendBloodRequest(
+                    user.getUserId(),
+                    showPerson.getId(),
+                    requestMessage
+                );
+
+                if (requestSent) {
+                    // Send blood request message through chat system
+                    boolean chatSent = ChatController.sendBloodRequestMessage(
+                        user.getUserId(),
+                        showPerson.getId(),
+                        hospitalInfo,
+                        showPerson.getBloodGroup()
+                    );
+
+                    Platform.runLater(() -> {
+                        updateWarning("✅ Blood request sent successfully!", "-fx-text-fill: #28a745;");
+                        updateChatArea("🩸 Blood request sent to " + showPerson.getName() + " for " + showPerson.getBloodGroup() + " blood");
+                        updateChatArea("📱 " + showPerson.getName() + " will receive both notification and chat message");
+                        if (hospitalNameTExtFild != null) hospitalNameTExtFild.clear();
+
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Blood Request Sent");
+                        alert.setHeaderText("Request Successfully Delivered");
+                        alert.setContentText("Your blood request has been sent to " + showPerson.getName() +
+                            ". They will receive notifications and can respond through the app.");
+                        alert.showAndWait();
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        updateWarning("❌ Failed to send blood request", "-fx-text-fill: #dc3545;");
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Request Failed");
+                        alert.setHeaderText("Unable to Send Blood Request");
+                        alert.setContentText("There was an error sending your blood request. Please try again.");
+                        alert.showAndWait();
+                    });
                 }
 
+            } catch (SQLException | ClassNotFoundException e) {
                 Platform.runLater(() -> {
-                    updateWarning("✅ Blood request sent successfully!", "-fx-text-fill: #28a745;");
-                    updateChatArea("🩸 Urgent blood request sent for " + showPerson.getBloodGroup() + " at " + hospitalInfo);
-                    if (hospitalNameTExtFild != null) hospitalNameTExtFild.clear();
+                    updateWarning("❌ Database error: " + e.getMessage(), "-fx-text-fill: #dc3545;");
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Database Error");
+                    alert.setHeaderText("Blood Request Failed");
+                    alert.setContentText("Database error occurred while sending blood request: " + e.getMessage());
+                    alert.showAndWait();
                 });
-
             } catch (Exception e) {
-                updateWarning("❌ Failed to send request: " + e.getMessage(), "-fx-text-fill: #dc3545;");
+                Platform.runLater(() -> {
+                    updateWarning("❌ Unexpected error: " + e.getMessage(), "-fx-text-fill: #dc3545;");
+                });
             }
         });
     }
@@ -339,23 +354,25 @@ public class UserProfileController implements Initializable {
                 updateWarning("🔄 Processing acceptance...", "-fx-text-fill: #17a2b8;");
 
                 if (user.getMessage() != null) {
-                    // Process donation acceptance
                     String hospitalInfo = hospitalNameTExtFild != null ? hospitalNameTExtFild.getText() : "Unknown Hospital";
                     Donation donation = new Donation(
                         hospitalInfo,
                         new Date(System.currentTimeMillis()),
-                        showPerson.getId(), // donatedPersonId
-                        0, // receivedPersonId (unknown for now)
+                        showPerson.getId(),
+                        0,
                         BloodGroup.valueOf(showPerson.getBloodGroup())
                     );
 
                     DonationController.saveDonation(donation);
 
-                    // Send network confirmation
-                    if (isConnected.get() && networkUtility != null) {
-                        Data data = new Data();
-                        data.message = user.getUserId() + "$accept$donation_accepted";
-                        networkUtility.write(data.clone());
+                    // Send acceptance message through chat
+                    if (currentConversationId > 0) {
+                        ChatController.sendMessage(
+                            currentConversationId,
+                            user.getUserId(),
+                            "✅ Great news! I have accepted your blood donation request. Let's coordinate the details.",
+                            "TEXT"
+                        );
                     }
 
                     Platform.runLater(() -> {
@@ -381,11 +398,14 @@ public class UserProfileController implements Initializable {
                 updateWarning("🔄 Processing rejection...", "-fx-text-fill: #17a2b8;");
 
                 if (user.getMessage() != null) {
-                    // Send network rejection
-                    if (isConnected.get() && networkUtility != null) {
-                        Data data = new Data();
-                        data.message = user.getUserId() + "$reject$donation_rejected";
-                        networkUtility.write(data.clone());
+                    // Send rejection message through chat
+                    if (currentConversationId > 0) {
+                        ChatController.sendMessage(
+                            currentConversationId,
+                            user.getUserId(),
+                            "❌ I'm sorry, but I cannot fulfill your blood donation request at this time. Please try contacting other donors.",
+                            "TEXT"
+                        );
                     }
 
                     Platform.runLater(() -> {
@@ -424,12 +444,12 @@ public class UserProfileController implements Initializable {
         }
     }
 
-    // Back to dashboard method - FIXED to prevent application freezing
+    // Back to dashboard method with proper cleanup
     public void back(ActionEvent event) {
         try {
             System.out.println("🔄 Navigating back to dashboard...");
 
-            // Cleanup network connections asynchronously to prevent UI freezing
+            // Cleanup database connections asynchronously
             CompletableFuture.runAsync(() -> {
                 try {
                     cleanup();
@@ -438,11 +458,10 @@ public class UserProfileController implements Initializable {
                 }
             });
 
-            // Navigate immediately without waiting for cleanup
+            // Navigate immediately
             Parent mainView = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("main.fxml")));
             Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            // Set scene properties
             Scene mainScene = new Scene(mainView);
             currentStage.setTitle("Blood Bank Management System - Dashboard");
             currentStage.setScene(mainScene);
@@ -455,7 +474,6 @@ public class UserProfileController implements Initializable {
             System.err.println("❌ Error loading main.fxml: " + e.getMessage());
             e.printStackTrace();
 
-            // Show user-friendly error message
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Navigation Error");
@@ -467,50 +485,20 @@ public class UserProfileController implements Initializable {
         } catch (Exception e) {
             System.err.println("❌ Unexpected error during navigation: " + e.getMessage());
             e.printStackTrace();
-
-            // Fallback: try to close current window
-            try {
-                Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                currentStage.close();
-            } catch (Exception closeException) {
-                System.err.println("❌ Error closing window: " + closeException.getMessage());
-
-                // Last resort: exit application gracefully
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Critical Error");
-                    alert.setHeaderText("Application Error");
-                    alert.setContentText("A critical error occurred. The application will now exit.");
-                    alert.showAndWait();
-                    Platform.exit();
-                });
-            }
         }
-    }
-
-    // Method to clear user session data during logout
-    public void clearSession() {
-        // TODO: Implement session clearing logic
-        updateWarning("🔑 Session data cleared (placeholder)", "-fx-text-fill: #28a745;");
     }
 
     // Cleanup method for proper resource management
     private void cleanup() {
         try {
-            isConnected.set(false);
-            connectionAttempting.set(false);
+            isOnline = false;
 
-            if (networkUtility != null) {
-                networkUtility.closeConnection();
-                networkUtility = null;
+            // Set user as offline in database
+            if (user != null && user.getUserId() > 0) {
+                ChatController.updateUserOnlineStatus(user.getUserId(), false);
             }
 
-            if (socketReader != null) {
-                // The Reader class handles its own cleanup when the NetworkUtility closes
-                socketReader = null;
-            }
-
-            System.out.println("🧹 Network connections cleaned up successfully");
+            System.out.println("🧹 Database connections cleaned up successfully");
 
         } catch (Exception e) {
             System.err.println("Error during cleanup: " + e.getMessage());
@@ -522,7 +510,20 @@ public class UserProfileController implements Initializable {
         cleanup();
     }
 
-    // New action methods for donor portal buttons
+    // Enhanced message handling with better formatting
+    public void handleMessage(String message) {
+        if (message != null && !message.trim().isEmpty()) {
+            updateChatArea("📩 " + message);
+
+            // Handle urgent messages with simple console output
+            if (message.toLowerCase().contains("urgent") || message.toLowerCase().contains("emergency")) {
+                System.out.println("🚨 URGENT MESSAGE RECEIVED: " + message);
+                updateWarning("🚨 Urgent message received!", "-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    // Missing FXML method - My Donation History
     public void onMyDonationHistoryClick(ActionEvent event) {
         try {
             updateWarning("📋 Loading donation history...", "-fx-text-fill: #17a2b8;");
@@ -537,6 +538,7 @@ public class UserProfileController implements Initializable {
         }
     }
 
+    // Missing FXML method - Blood Request Alerts
     public void onBloodRequestAlertsClick(ActionEvent event) {
         try {
             updateWarning("🔔 Checking blood request alerts...", "-fx-text-fill: #17a2b8;");
@@ -550,19 +552,4 @@ public class UserProfileController implements Initializable {
             updateWarning("❌ Error loading blood request alerts: " + e.getMessage(), "-fx-text-fill: #dc3545;");
         }
     }
-
-    public void onNearbyBloodBanksClick(ActionEvent event) {
-        try {
-            updateWarning("🏥 Finding nearby blood banks...", "-fx-text-fill: #17a2b8;");
-
-            // TODO: Implement nearby blood banks functionality
-            // For now, show a placeholder message
-            updateChatArea("🏥 Nearby Blood Banks: Feature coming soon! You'll be able to find blood banks near your location.");
-            updateWarning("✅ Nearby blood banks feature will be implemented soon", "-fx-text-fill: #28a745;");
-
-        } catch (Exception e) {
-            updateWarning("❌ Error finding nearby blood banks: " + e.getMessage(), "-fx-text-fill: #dc3545;");
-        }
-    }
-
 }

@@ -46,23 +46,23 @@ public class AddressController {
             ResultSet rs = checkStmt.executeQuery();
 
             if (rs.next()) {
-                // Address exists, update it
+                // Address exists, update it - FIXED: Use correct column name 'thana'
                 String updateQuery = "UPDATE address SET division = ?, district = ?, thana = ? WHERE person_id = ?";
                 PreparedStatement updateStmt = connection.prepareStatement(updateQuery);
                 updateStmt.setString(1, address.getDivision());
                 updateStmt.setString(2, address.getDistrict());
-                updateStmt.setString(3, address.getSubDistrict());
+                updateStmt.setString(3, address.getSubDistrict()); // getSubDistrict() maps to 'thana' column
                 updateStmt.setInt(4, personId);
                 updateStmt.executeUpdate();
                 isUpdated = true;
             } else {
-                // No address exists, create a new one
+                // No address exists, create a new one - FIXED: Column mapping
                 String insertQuery = "INSERT INTO address (person_id, division, district, thana) VALUES (?, ?, ?, ?)";
                 PreparedStatement insertStmt = connection.prepareStatement(insertQuery);
                 insertStmt.setInt(1, personId);
                 insertStmt.setString(2, address.getDivision());
                 insertStmt.setString(3, address.getDistrict());
-                insertStmt.setString(4, address.getSubDistrict());
+                insertStmt.setString(4, address.getSubDistrict()); // getSubDistrict() maps to 'thana' column
                 insertStmt.executeUpdate();
                 isUpdated = true;
             }
